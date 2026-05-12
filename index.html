@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tube Sort Solver · AppADay</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:       #080b10;
+    --surface:  #0f1520;
+    --border:   rgba(255,255,255,0.08);
+    --accent:   #f5c518;
+    --green:    #39d353;
+    --red:      #e63946;
+    --text:     #e8eaf0;
+    --muted:    #4a5060;
+    --radius:   10px;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'Barlow', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* ── Portfolio header bar ── */
+  #portfolio-bar {
+    background: rgba(0,0,0,0.6);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(8px);
+  }
+  #portfolio-bar a { color: var(--accent); text-decoration: none; }
+  #portfolio-bar a:hover { text-decoration: underline; }
+
+  /* ── Main layout ── */
+  #app { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+  /* ── Title ── */
+  .title-block { text-align: center; margin-bottom: 28px; }
+  .title-block h1 {
+    font-family: var(--mono);
+    font-size: clamp(24px, 6vw, 42px);
+    font-weight: 400;
+    letter-spacing: 6px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .title-block p {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  /* ── API key section ── */
+  #key-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  #key-section label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  #key-row { display: flex; gap: 8px; }
+  #api-key-input {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #api-key-input:focus { border-color: var(--accent); }
+  .key-note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .key-note a { color: var(--accent); }
+
+  /* ── Control row ── */
+  #controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  button {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    font-weight: 400;
+  }
+  button:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-yellow  { background: var(--accent); color: #000; }
+  .btn-green   { background: var(--green);  color: #000; }
+  .btn-ghost   { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost.active { color: var(--accent); border-color: var(--accent); }
+  .btn-danger  { background: #2a1010; color: var(--red); border: 1px solid #3a1515; }
+
+  .tube-count-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tube-count-row span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+  .cnt-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .cnt-btn.active { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Status bar ── */
+  #status-bar {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(245,197,24,0.06);
+    border: 1px solid rgba(245,197,24,0.15);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    min-height: 38px;
+    display: none;
+  }
+  #status-bar.visible { display: block; }
+
+  /* ── Solution nav ── */
+  #solution-nav {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  #solution-nav.visible { display: flex; }
+  #move-label {
+    font-family: var(--mono);
+    font-size: 13px;
+    text-align: center;
+    min-width: 180px;
+  }
+  #move-label .step-num { color: var(--accent); }
+  #move-label .step-move { color: #aaa; font-size: 11px; display: block; margin-top: 3px; }
+  #move-label .solved { color: var(--green); }
+
+  /* ── Tubes grid ── */
+  #tubes-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .tube-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 8px 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+    cursor: default;
+  }
+  .tube-wrapper.from {
+    border-color: rgba(245,197,24,0.5);
+    background: rgba(245,197,24,0.07);
+    box-shadow: 0 0 12px rgba(245,197,24,0.15);
+  }
+  .tube-wrapper.to {
+    border-color: rgba(57,211,83,0.5);
+    background: rgba(57,211,83,0.07);
+    box-shadow: 0 0 12px rgba(57,211,83,0.15);
+  }
+  .tube-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+  }
+  .tube-wrapper.from .tube-label { color: var(--accent); }
+  .tube-wrapper.to   .tube-label { color: var(--green); }
+  .tube-move-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    margin-top: 5px;
+    letter-spacing: 1px;
+  }
+  .tube-wrapper.from .tube-move-tag { color: var(--accent); }
+  .tube-wrapper.to   .tube-move-tag { color: var(--green); }
+
+  .cell {
+    width: 46px;
+    height: 46px;
+    border-radius: 7px;
+    border: 1px solid rgba(255,255,255,0.09);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    margin-bottom: 3px;
+    user-select: none;
+  }
+  .cell:hover { transform: scale(1.1); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  .cell.empty {
+    background: rgba(255,255,255,0.03);
+    border-style: dashed;
+    border-color: rgba(255,255,255,0.06);
+    color: transparent;
+  }
+
+  /* ── Color picker modal ── */
+  #picker-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  #picker-overlay.open { display: flex; }
+  #picker-modal {
+    background: #0f1520;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 20px;
+    width: min(360px, 92vw);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  #picker-modal h3 {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+  }
+  #picker-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .color-chip {
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: transform 0.1s;
+    min-width: 64px;
+    text-align: center;
+  }
+  .color-chip:hover { transform: scale(1.08); }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Portfolio header bar -->
+<div id="portfolio-bar">
+  <span>← <a href="../../index.html">appaday portfolio</a></span>
+  <span id="app-num-label">APP ###</span>
+  <span>A · AI-POWERED TOOLS</span>
+</div>
+
+<div id="app">
+  <div class="title-block">
+    <h1>TUBE_SORT</h1>
+    <p>AI screenshot solver · AppADay</p>
+  </div>
+
+  <!-- API Key -->
+  <div id="key-section">
+    <label>ANTHROPIC API KEY (screenshot analysis)</label>
+    <div id="key-row">
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" />
+      <button class="btn-ghost" id="toggle-key-btn" onclick="toggleKeyVis()">SHOW</button>
+    </div>
+    <p class="key-note">
+      Your key is stored only in memory for this session and never sent anywhere except directly to
+      <a href="https://api.anthropic.com" target="_blank">api.anthropic.com</a>.
+      Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+      A key is only needed for screenshot upload. Manual entry and solving work without one.
+    </p>
+  </div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleUpload(event)" />
+    <button class="btn-yellow" onclick="document.getElementById('file-input').click()" id="upload-btn">📷 UPLOAD SCREENSHOT</button>
+    <button class="btn-green"  onclick="handleSolve()" id="solve-btn">⚡ SOLVE</button>
+    <button class="btn-danger" onclick="handleReset()">✕ RESET</button>
+    <div class="tube-count-row">
+      <span>TUBES:</span>
+      <button id="cnt-4"  class="cnt-btn" onclick="setTubeCount(4)">4</button>
+      <button id="cnt-6"  class="cnt-btn active" onclick="setTubeCount(6)">6</button>
+      <button id="cnt-8"  class="cnt-btn" onclick="setTubeCount(8)">8</button>
+      <button id="cnt-10" class="cnt-btn" onclick="setTubeCount(10)">10</button>
+      <button id="cnt-12" class="cnt-btn" onclick="setTubeCount(12)">12</button>
+      <button id="cnt-14" class="cnt-btn" onclick="setTubeCount(14)">14</button>
+      <button id="cnt-16" class="cnt-btn" onclick="setTubeCount(16)">16</button>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div id="status-bar"></div>
+
+  <!-- Solution nav -->
+  <div id="solution-nav">
+    <button class="btn-ghost" onclick="goStep(0)">⏮</button>
+    <button class="btn-ghost" onclick="goStep(solvingStep - 1)">◀</button>
+    <div id="move-label"></div>
+    <button class="btn-ghost" onclick="goStep(solvingStep + 1)">▶</button>
+    <button class="btn-ghost" onclick="goStep(solution.length)">⏭</button>
+  </div>
+
+  <!-- Tubes -->
+  <div id="tubes-grid"></div>
+
+  <footer>
+    SHIP SOMETHING EVERY DAY · IT COMPOUNDS
+  </footer>
+</div>
+
+<!-- Color picker modal -->
+<div id="picker-overlay" onclick="closePicker()">
+  <div id="picker-modal" onclick="event.stopPropagation()">
+    <h3>SELECT COLOR — T<span id="picker-tube-label"></span> · SLOT <span id="picker-slot-label"></span></h3>
+    <div id="picker-grid"></div>
+  </div>
+</div>
+
+<script>
+// ── Color definitions ──────────────────────────────────────────────────────
+const COLORS = {
+  red:     { bg: "#e63946", fg: "#fff",  label: "Red"      },
+  pink:    { bg: "#f48fb1", fg: "#111",  label: "Pink"     },
+  blue:    { bg: "#4fc3f7", fg: "#111",  label: "Blue"     },
+  green:   { bg: "#43a047", fg: "#fff",  label: "Green"    },
+  purple:  { bg: "#9c27b0", fg: "#fff",  label: "Purple"   },
+  orange:  { bg: "#ff9800", fg: "#111",  label: "Orange"   },
+  brown:   { bg: "#795548", fg: "#fff",  label: "Brown"    },
+  gray:    { bg: "#90a4ae", fg: "#111",  label: "Gray"     },
+  magenta: { bg: "#e91e63", fg: "#fff",  label: "Magenta"  },
+  darkred: { bg: "#7b1515", fg: "#fff",  label: "DarkRed"  },
+  teal:    { bg: "#00897b", fg: "#fff",  label: "Teal"     },
+  yellow:  { bg: "#fdd835", fg: "#111",  label: "Yellow"   },
+  "?":     { bg: "#1e2030", fg: "#555",  label: "?"        },
+  empty:   { bg: "transparent", fg: "#333", label: "—"     },
+};
+const COLOR_KEYS = Object.keys(COLORS).filter(k => k !== "empty");
+const TUBE_SIZE = 4;
+
+// ── State ──────────────────────────────────────────────────────────────────
+let tubeCount = 6;
+let tubes = emptyTubes(6);
+let solution = null;
+let solvingStep = 0;
+let editTarget = null; // {ti, ci}
+
+function emptyTubes(n) {
+  return Array.from({ length: n }, () => Array(TUBE_SIZE).fill("empty"));
+}
+
+// ── Solver (BFS) ───────────────────────────────────────────────────────────
+function topOf(tube) {
+  for (let i = 0; i < tube.length; i++) {
+    if (tube[i] !== "empty") return { color: tube[i], idx: i };
+  }
+  return null;
+}
+
+function isDone(tubes) {
+  return tubes.every(t => {
+    const filled = t.filter(c => c !== "empty");
+    if (filled.length === 0) return true;
+    if (filled.length !== TUBE_SIZE) return false;
+    return filled.every(c => c === filled[0] && c !== "?");
+  });
+}
+
+function canMove(from, to) {
+  if (from === to) return false;
+  const ft = topOf(from);
+  if (!ft) return false;
+  const filled = to.filter(c => c !== "empty");
+  if (filled.length >= TUBE_SIZE) return false;
+  const tt = topOf(to);
+  if (!tt) return true;
+  return tt.color === ft.color;
+}
+
+function applyMove(tubes, fi, ti) {
+  const next = tubes.map(t => [...t]);
+  const color = topOf(next[fi]).color;
+  let idx = topOf(next[fi]).idx;
+  while (idx < TUBE_SIZE && next[fi][idx] === color) {
+    let placeAt = -1;
+    for (let i = TUBE_SIZE - 1; i >= 0; i--) {
+      if (next[ti][i] === "empty") { placeAt = i; break; }
+    }
+    if (placeAt === -1) break;
+    next[fi][idx] = "empty";
+    next[ti][placeAt] = color;
+    idx++;
+    const nt = topOf(next[ti]);
+    if (nt && nt.color !== color) break;
+  }
+  return next;
+}
+
+function stateKey(tubes) {
+  return JSON.stringify(tubes.map(t => [...t]).sort().join("|"));
+}
+
+function solve(tubes) {
+  const queue = [{ t: tubes, moves: [] }];
+  const visited = new Set([stateKey(tubes)]);
+  const MAX = 10000;
+  let iter = 0;
+  while (queue.length && iter++ < MAX) {
+    const { t: cur, moves } = queue.shift();
+    if (isDone(cur)) return moves;
+    if (moves.length > 80) continue;
+    for (let fi = 0; fi < cur.length; fi++) {
+      for (let ti = 0; ti < cur.length; ti++) {
+        if (canMove(cur[fi], cur[ti])) {
+          const next = applyMove(cur, fi, ti);
+          const key = stateKey(next);
+          if (!visited.has(key)) {
+            visited.add(key);
+            queue.push({ t: next, moves: [...moves, { from: fi, to: ti }] });
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function displayTubesForStep() {
+  if (!solution || solvingStep === 0) return tubes;
+  let t = tubes.map(x => [...x]);
+  for (let i = 0; i < solvingStep; i++) {
+    t = applyMove(t, solution[i].from, solution[i].to);
+  }
+  return t;
+}
+
+function render() {
+  const grid = document.getElementById("tubes-grid");
+  grid.innerHTML = "";
+  const display = displayTubesForStep();
+  const currentMove = solution && solvingStep < solution.length ? solution[solvingStep] : null;
+
+  display.forEach((tube, ti) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "tube-wrapper"
+      + (currentMove && currentMove.from === ti ? " from" : "")
+      + (currentMove && currentMove.to   === ti ? " to"   : "");
+
+    const lbl = document.createElement("div");
+    lbl.className = "tube-label";
+    lbl.textContent = `T${ti + 1}`;
+    wrapper.appendChild(lbl);
+
+    tube.forEach((color, ci) => {
+      const cell = document.createElement("div");
+      cell.className = "cell" + (color === "empty" ? " empty" : "");
+      const def = COLORS[color] || COLORS["?"];
+      cell.style.background = color === "empty" ? "" : def.bg;
+      cell.style.color = def.fg;
+      cell.style.border = color === "empty" ? "" : `1px solid rgba(255,255,255,0.12)`;
+      cell.textContent = color === "empty" ? "" : def.label;
+      cell.onclick = () => openPicker(ti, ci);
+      wrapper.appendChild(cell);
+    });
+
+    if (currentMove) {
+      const tag = document.createElement("div");
+      tag.className = "tube-move-tag";
+      if (currentMove.from === ti) tag.textContent = "FROM";
+      if (currentMove.to   === ti) tag.textContent = "TO";
+      wrapper.appendChild(tag);
+    }
+
+    grid.appendChild(wrapper);
+  });
+
+  // Solution nav label
+  const navEl = document.getElementById("solution-nav");
+  const lblEl = document.getElementById("move-label");
+  if (solution) {
+    navEl.classList.add("visible");
+    if (solvingStep < solution.length) {
+      const m = solution[solvingStep];
+      lblEl.innerHTML = `<span class="step-num">Step ${solvingStep + 1} / ${solution.length}</span>`
+        + `<span class="step-move">Move T${m.from + 1} → T${m.to + 1}</span>`;
+    } else {
+      lblEl.innerHTML = `<span class="solved">✓ SOLVED</span>`;
+    }
+  } else {
+    navEl.classList.remove("visible");
+  }
+}
+
+// ── Picker ─────────────────────────────────────────────────────────────────
+function openPicker(ti, ci) {
+  editTarget = { ti, ci };
+  document.getElementById("picker-tube-label").textContent = ti + 1;
+  document.getElementById("picker-slot-label").textContent = ci + 1;
+  const grid = document.getElementById("picker-grid");
+  grid.innerHTML = "";
+  COLOR_KEYS.forEach(k => {
+    const def = COLORS[k];
+    const chip = document.createElement("div");
+    chip.className = "color-chip";
+    chip.style.background = def.bg;
+    chip.style.color = def.fg;
+    chip.style.borderColor = "rgba(255,255,255,0.1)";
+    chip.textContent = def.label;
+    chip.onclick = () => { applyColorPick(k); };
+    grid.appendChild(chip);
+  });
+  // Clear chip
+  const clear = document.createElement("div");
+  clear.className = "color-chip";
+  clear.style.background = "rgba(255,255,255,0.04)";
+  clear.style.color = "#555";
+  clear.style.border = "1px dashed #333";
+  clear.textContent = "Clear";
+  clear.onclick = () => applyColorPick("empty");
+  grid.appendChild(clear);
+
+  document.getElementById("picker-overlay").classList.add("open");
+}
+
+function applyColorPick(color) {
+  if (!editTarget) return;
+  tubes[editTarget.ti][editTarget.ci] = color;
+  solution = null;
+  solvingStep = 0;
+  closePicker();
+  render();
+}
+
+function closePicker() {
+  document.getElementById("picker-overlay").classList.remove("open");
+  editTarget = null;
+}
+
+// ── Controls ───────────────────────────────────────────────────────────────
+function setTubeCount(n) {
+  tubeCount = n;
+  if (n > tubes.length) {
+    tubes = [...tubes, ...emptyTubes(n - tubes.length)];
+  } else {
+    tubes = tubes.slice(0, n);
+  }
+  solution = null;
+  solvingStep = 0;
+  document.querySelectorAll(".cnt-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("cnt-" + n)?.classList.add("active");
+  render();
+}
+
+function handleReset() {
+  tubes = emptyTubes(tubeCount);
+  solution = null;
+  solvingStep = 0;
+  setStatus("");
+  render();
+}
+
+function goStep(n) {
+  if (!solution) return;
+  solvingStep = Math.max(0, Math.min(solution.length, n));
+  render();
+}
+
+function setStatus(msg) {
+  const el = document.getElementById("status-bar");
+  if (msg) {
+    el.textContent = msg;
+    el.classList.add("visible");
+  } else {
+    el.classList.remove("visible");
+  }
+}
+
+function toggleKeyVis() {
+  const inp = document.getElementById("api-key-input");
+  const btn = document.getElementById("toggle-key-btn");
+  if (inp.type === "password") { inp.type = "text";     btn.textContent = "HIDE"; }
+  else                         { inp.type = "password"; btn.textContent = "SHOW"; }
+}
+
+// ── Solve ──────────────────────────────────────────────────────────────────
+function handleSolve() {
+  setStatus("Solving…");
+  solution = null;
+  solvingStep = 0;
+  render();
+  setTimeout(() => {
+    const result = solve(tubes);
+    if (result) {
+      solution = result;
+      solvingStep = 0;
+      setStatus(`✓ Solution found in ${result.length} moves. Use ▶ to step through.`);
+    } else {
+      setStatus("No solution found. If you have '?' unknowns, try guessing them or use Reveal in-game to expose them first.");
+    }
+    render();
+  }, 30);
+}
+
+// ── Screenshot analysis ────────────────────────────────────────────────────
+async function handleUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const apiKey = document.getElementById("api-key-input").value.trim();
+  if (!apiKey) {
+    setStatus("⚠ Enter your Anthropic API key above to use screenshot analysis.");
+    return;
+  }
+  setStatus("Analyzing screenshot with AI…");
+  document.getElementById("upload-btn").disabled = true;
+
+  try {
+    const base64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(",")[1]);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: `You are a Ball Sort puzzle analyzer. Given a screenshot, output ONLY a JSON object with key "tubes". Each tube is an array of 4 strings top-to-bottom from: red, pink, blue, green, purple, orange, brown, gray, magenta, darkred, teal, yellow, ?, empty. Use "?" for hidden slots, "empty" for empty slots. Output only valid JSON, no markdown, no backticks.`,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: file.type || "image/png", data: base64 } },
+            { type: "text", text: "Analyze this Ball Sort puzzle and return the JSON tube layout." }
+          ]
+        }]
+      })
+    });
+
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content?.find(b => b.type === "text")?.text || "";
+    const clean = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+
+    if (parsed.tubes && Array.isArray(parsed.tubes)) {
+      const normalized = parsed.tubes.map(t =>
+        Array.from({ length: TUBE_SIZE }, (_, i) => {
+          const v = t[i];
+          return (v && COLORS[v]) ? v : "empty";
+        })
+      );
+      tubes = normalized;
+      tubeCount = normalized.length;
+      solution = null;
+      solvingStep = 0;
+      // Update tube count button
+      document.querySelectorAll(".cnt-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById("cnt-" + tubeCount)?.classList.add("active");
+      setStatus(`Detected ${tubeCount} tubes. Review cells (click to edit), then hit SOLVE. Replace any '?' as you reveal them in-game.`);
+      render();
+    } else {
+      setStatus("Could not parse AI response. Try manual entry by clicking each cell.");
+    }
+  } catch (err) {
+    setStatus("Error: " + err.message);
+  }
+
+  document.getElementById("upload-btn").disabled = false;
+  event.target.value = "";
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
