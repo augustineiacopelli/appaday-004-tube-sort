@@ -13,4 +13,6 @@ runtime — it is never stored or committed.
 
 **Category:** A · AI-Powered Tools  
 **Stack:** HTML · CSS · JS · Claude API (vision + claude-sonnet-4)  
-**AppADay:** [###]
+**AppADay:** 004
+
+2026-05-11: Doesn't resolve all colors correctly in uploaded screenshot. Need to come back at some point to see if I can get this to handle the colors better on the uploads.
