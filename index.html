@@ -26,8 +26,9 @@
     background: var(--bg);
     color: var(--text);
     font-family: var(--sans);
-    min-height: 100vh;
-    padding-bottom: 60px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
   }
 
   /* ── Portfolio header bar ── */
@@ -45,12 +46,19 @@
     top: 0;
     z-index: 50;
     backdrop-filter: blur(8px);
+    flex-shrink: 0;
   }
   #portfolio-bar a { color: var(--accent); text-decoration: none; }
   #portfolio-bar a:hover { text-decoration: underline; }
 
   /* ── Main layout ── */
-  #app { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  #app {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 24px 16px 40px;
+  }
 
   /* ── Title ── */
   .title-block { text-align: center; margin-bottom: 28px; }
@@ -70,23 +78,56 @@
     text-transform: uppercase;
   }
 
-  /* ── API key section ── */
-  #key-section {
-    background: var(--surface);
+  /* ── Settings gear button ── */
+  #settings-btn {
+    background: none;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-bottom: 20px;
+    border-radius: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    line-height: 1;
+    vertical-align: middle;
   }
-  #key-section label {
+  #settings-btn:hover { color: var(--accent); border-color: var(--accent); }
+  #settings-btn.keyed { color: var(--green); border-color: var(--green); }
+
+  /* ── Settings modal ── */
+  #settings-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+  }
+  #settings-overlay.open { display: flex; }
+  #settings-modal {
+    background: #0f1520;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 24px;
+    width: min(400px, 92vw);
+  }
+  #settings-modal h3 {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+  }
+  #settings-modal label {
     display: block;
     font-family: var(--mono);
     font-size: 11px;
     color: var(--muted);
     letter-spacing: 2px;
-    margin-bottom: 8px;
+    margin-bottom: 7px;
   }
-  #key-row { display: flex; gap: 8px; }
+  #key-row { display: flex; gap: 8px; margin-bottom: 10px; }
   #api-key-input {
     flex: 1;
     background: rgba(0,0,0,0.4);
@@ -103,10 +144,10 @@
   .key-note {
     font-size: 11px;
     color: var(--muted);
-    margin-top: 8px;
     line-height: 1.6;
   }
   .key-note a { color: var(--accent); }
+  #settings-close-row { display: flex; justify-content: flex-end; margin-top: 18px; }
 
   /* ── Control row ── */
   #controls {
@@ -114,6 +155,7 @@
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+    justify-content: center;
     margin-bottom: 20px;
   }
 
@@ -200,6 +242,9 @@
     flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
+    align-content: flex-start;
+    flex: 1;
+    width: 100%;
   }
 
   .tube-wrapper {
@@ -328,7 +373,58 @@
 <div id="portfolio-bar">
   <span>← <a href="https://augustineiacopelli.github.io/appaday/">appaday portfolio</a></span>
   <span id="app-num-label">APP 004</span>
-  <span>A · AI-POWERED TOOLS</span>
+  <span>A · AI-POWERED TOOLS &nbsp;<button id="settings-btn" onclick="openSettings()" title="Settings">⚙</button></span>
+</div>
+
+<!-- Settings modal -->
+<div id="settings-overlay" onclick="closeSettings()">
+  <div id="settings-modal" onclick="event.stopPropagation()">
+    <h3>⚙ SETTINGS</h3>
+    <label>ANTHROPIC API KEY</label>
+    <div id="key-row">
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" oninput="updateGearState()" />
+      <button class="btn-ghost" id="toggle-key-btn" onclick="toggleKeyVis()">SHOW</button>
+    </div>
+    <p class="key-note">
+      Your key is stored only in memory for this session and never sent anywhere except directly to
+      <a href="https://api.anthropic.com" target="_blank">api.anthropic.com</a>.
+      Needed only for screenshot upload — manual entry and solving work without one.
+      Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+    </p>
+
+    <label style="margin-top:18px;">DISTINCT COLORS IN THIS PUZZLE</label>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="display:flex;flex-wrap:wrap;gap:5px;" id="color-count-btns">
+        <button class="cnt-btn" onclick="setColorCount(0)">AUTO</button>
+        <button class="cnt-btn" onclick="setColorCount(4)">4</button>
+        <button class="cnt-btn" onclick="setColorCount(5)">5</button>
+        <button class="cnt-btn" onclick="setColorCount(6)">6</button>
+        <button class="cnt-btn" onclick="setColorCount(7)">7</button>
+        <button class="cnt-btn" onclick="setColorCount(8)">8</button>
+        <button class="cnt-btn" onclick="setColorCount(9)">9</button>
+        <button class="cnt-btn" onclick="setColorCount(10)">10</button>
+        <button class="cnt-btn" onclick="setColorCount(11)">11</button>
+        <button class="cnt-btn" onclick="setColorCount(12)">12</button>
+      </div>
+    </div>
+    <p class="key-note">Count the number of unique colors visible in the puzzle (not tubes, colors). This tells the AI exactly how many distinct colors to find, preventing it from collapsing similar shades into one.</p>
+
+    <label style="margin-top:18px;">NUMBER OF TUBES</label>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;" id="tube-count-btns">
+      <button class="cnt-btn" onclick="setTubeCount(4)">4</button>
+      <button class="cnt-btn" onclick="setTubeCount(6)">6</button>
+      <button class="cnt-btn" onclick="setTubeCount(8)">8</button>
+      <button class="cnt-btn" onclick="setTubeCount(10)">10</button>
+      <button class="cnt-btn" onclick="setTubeCount(12)">12</button>
+      <button class="cnt-btn" onclick="setTubeCount(14)">14</button>
+      <button class="cnt-btn" onclick="setTubeCount(16)">16</button>
+    </div>
+    <p class="key-note">Total number of tubes in the puzzle including empty ones.</p>
+
+    <div id="settings-close-row">
+      <button class="btn-ghost" onclick="closeSettings()">DONE</button>
+    </div>
+  </div>
 </div>
 
 <div id="app">
@@ -337,37 +433,12 @@
     <p>AI screenshot solver · AppADay</p>
   </div>
 
-  <!-- API Key -->
-  <div id="key-section">
-    <label>ANTHROPIC API KEY (screenshot analysis)</label>
-    <div id="key-row">
-      <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" />
-      <button class="btn-ghost" id="toggle-key-btn" onclick="toggleKeyVis()">SHOW</button>
-    </div>
-    <p class="key-note">
-      Your key is stored only in memory for this session and never sent anywhere except directly to
-      <a href="https://api.anthropic.com" target="_blank">api.anthropic.com</a>.
-      Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
-      A key is only needed for screenshot upload. Manual entry and solving work without one.
-    </p>
-  </div>
-
   <!-- Controls -->
   <div id="controls">
     <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleUpload(event)" />
     <button class="btn-yellow" onclick="document.getElementById('file-input').click()" id="upload-btn">📷 UPLOAD SCREENSHOT</button>
     <button class="btn-green"  onclick="handleSolve()" id="solve-btn">⚡ SOLVE</button>
     <button class="btn-danger" onclick="handleReset()">✕ RESET</button>
-    <div class="tube-count-row">
-      <span>TUBES:</span>
-      <button id="cnt-4"  class="cnt-btn" onclick="setTubeCount(4)">4</button>
-      <button id="cnt-6"  class="cnt-btn active" onclick="setTubeCount(6)">6</button>
-      <button id="cnt-8"  class="cnt-btn" onclick="setTubeCount(8)">8</button>
-      <button id="cnt-10" class="cnt-btn" onclick="setTubeCount(10)">10</button>
-      <button id="cnt-12" class="cnt-btn" onclick="setTubeCount(12)">12</button>
-      <button id="cnt-14" class="cnt-btn" onclick="setTubeCount(14)">14</button>
-      <button id="cnt-16" class="cnt-btn" onclick="setTubeCount(16)">16</button>
-    </div>
   </div>
 
   <!-- Status -->
@@ -424,7 +495,15 @@ let tubeCount = 6;
 let tubes = emptyTubes(6);
 let solution = null;
 let solvingStep = 0;
-let editTarget = null; // {ti, ci}
+let editTarget = null;
+let colorCount = 0; // 0 = auto
+
+function setColorCount(n) {
+  colorCount = n;
+  document.querySelectorAll("#color-count-btns .cnt-btn").forEach(b => {
+    b.classList.toggle("active", b.textContent === (n === 0 ? "AUTO" : String(n)));
+  });
+}
 
 function emptyTubes(n) {
   return Array.from({ length: n }, () => Array(TUBE_SIZE).fill("empty"));
@@ -628,8 +707,9 @@ function setTubeCount(n) {
   }
   solution = null;
   solvingStep = 0;
-  document.querySelectorAll(".cnt-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById("cnt-" + n)?.classList.add("active");
+  document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b => {
+    b.classList.toggle("active", b.textContent === String(n));
+  });
   render();
 }
 
@@ -657,6 +737,17 @@ function setStatus(msg) {
   }
 }
 
+function openSettings() {
+  document.getElementById("settings-overlay").classList.add("open");
+}
+function closeSettings() {
+  document.getElementById("settings-overlay").classList.remove("open");
+  updateGearState();
+}
+function updateGearState() {
+  const hasKey = document.getElementById("api-key-input").value.trim().length > 0;
+  document.getElementById("settings-btn").classList.toggle("keyed", hasKey);
+}
 function toggleKeyVis() {
   const inp = document.getElementById("api-key-input");
   const btn = document.getElementById("toggle-key-btn");
@@ -689,7 +780,8 @@ async function handleUpload(event) {
   if (!file) return;
   const apiKey = document.getElementById("api-key-input").value.trim();
   if (!apiKey) {
-    setStatus("⚠ Enter your Anthropic API key above to use screenshot analysis.");
+    setStatus("⚠ Enter your Anthropic API key in Settings (⚙) to use screenshot analysis.");
+    openSettings();
     return;
   }
   setStatus("Analyzing screenshot with AI…");
@@ -703,6 +795,10 @@ async function handleUpload(event) {
       r.readAsDataURL(file);
     });
 
+    const colorConstraint = colorCount > 0
+      ? `\nCRITICAL CONSTRAINT: This puzzle contains EXACTLY ${colorCount} distinct colors (not counting "?" and "empty"). You MUST identify exactly ${colorCount} different color values across all tubes. If you find yourself using more or fewer than ${colorCount} colors, re-examine the image — you have either merged two similar colors into one or split one color into two. Adjust until you have exactly ${colorCount}.`
+      : "";
+
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -714,12 +810,44 @@ async function handleUpload(event) {
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
-        system: `You are a Ball Sort puzzle analyzer. Given a screenshot, output ONLY a JSON object with key "tubes". Each tube is an array of 4 strings top-to-bottom from: red, pink, blue, green, purple, orange, brown, gray, magenta, darkred, teal, yellow, ?, empty. Use "?" for hidden slots, "empty" for empty slots. Output only valid JSON, no markdown, no backticks.`,
+        system: `You are a Ball Sort puzzle color analyzer. Your only job is to read tube contents from a screenshot and return a JSON object.
+
+OUTPUT FORMAT: {"tubes": [[slot0,slot1,slot2,slot3], ...]} where each slot is read top-to-bottom and is exactly one of these color keys:
+
+  red      — bright fire-engine red (e.g. #e63946)
+  pink     — soft pastel pink or light rose (e.g. #f48fb1)
+  blue     — sky blue or cyan-blue, clearly light (e.g. #4fc3f7)
+  green    — solid mid-tone green or dark green (e.g. #43a047)
+  purple   — medium violet-purple (e.g. #9c27b0)
+  orange   — warm amber-orange (e.g. #ff9800)
+  brown    — earthy tan or dark brown (e.g. #795548)
+  gray     — neutral silver-gray (e.g. #90a4ae)
+  magenta  — vivid hot pink / fuchsia / deep pink (e.g. #e91e63) — brighter and more saturated than pink
+  darkred  — deep maroon or wine red, much darker than red (e.g. #7b1515)
+  teal     — blue-green, clearly greenish-blue (e.g. #00897b)
+  yellow   — bright yellow (e.g. #fdd835)
+  ?        — slot is hidden, obscured, or shows a question mark in-game
+  empty    — slot is visibly empty (no color)
+
+DISAMBIGUATION RULES — read carefully:
+- red vs darkred: darkred is MUCH darker, almost maroon/wine. If it could be either, ask: is it dark enough to be called maroon? If yes, use darkred.
+- pink vs magenta: magenta is HOT and saturated (fuchsia). Pink is soft and pastel. If it is vivid and punchy, use magenta.
+- blue vs purple: blue has no red in it. Purple leans violet. If you see cyan or sky blue, use blue. If there is any red tinge, use purple.
+- purple vs magenta: purple is violet (blue+red). Magenta is pink+red with no blue.
+- brown vs orange: brown is dark and earthy. Orange is bright and warm. Dark orange = brown.
+- gray vs blue: gray has no color cast. Blue-gray = blue.
+${colorConstraint}
+Tubes are listed left-to-right, top-row first, then middle row, then bottom row. Each tube has exactly 4 slots. Use "?" for any hidden/unknown slot. Use "empty" for visibly empty slots.
+
+Output ONLY the raw JSON. No markdown, no backticks, no explanation.`,
         messages: [{
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: file.type || "image/png", data: base64 } },
-            { type: "text", text: "Analyze this Ball Sort puzzle and return the JSON tube layout." }
+            { type: "text", text: colorCount > 0
+                ? `Analyze this Ball Sort puzzle. There are exactly ${colorCount} distinct colors present. Return the JSON tube layout.`
+                : "Analyze this Ball Sort puzzle and return the JSON tube layout."
+            }
           ]
         }]
       })
@@ -742,9 +870,9 @@ async function handleUpload(event) {
       tubeCount = normalized.length;
       solution = null;
       solvingStep = 0;
-      // Update tube count button
-      document.querySelectorAll(".cnt-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById("cnt-" + tubeCount)?.classList.add("active");
+      document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b => {
+        b.classList.toggle("active", b.textContent === String(tubeCount));
+      });
       setStatus(`Detected ${tubeCount} tubes. Review cells (click to edit), then hit SOLVE. Replace any '?' as you reveal them in-game.`);
       render();
     } else {
@@ -759,6 +887,8 @@ async function handleUpload(event) {
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
+setColorCount(0);
+setTubeCount(6);
 render();
 </script>
 </body>
