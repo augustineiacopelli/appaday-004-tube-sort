@@ -1091,6 +1091,8 @@ async function runAnalysis(file, base64, mime, swatches) {
         max_tokens: 1500,
         system: `You are a Ball Sort puzzle color analyzer. Read tube contents from a screenshot and return a JSON object.
 
+CRITICAL: Your response must begin with { and end with }. No preamble, no explanation, no markdown. Raw JSON only.
+
 OUTPUT FORMAT:
 {
   "tubes": [[slot0,slot1,slot2,slot3], ...],
@@ -1114,27 +1116,52 @@ ${paletteConstraint}${countConstraint}
 Tubes are left-to-right, top-row first. Each tube has exactly 4 slots. Use "?" for hidden/question-mark slots. Use "empty" for visibly empty slots.
 
 Output ONLY raw JSON. No markdown, no backticks, no explanation.`,
-        messages: [{
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: mime, data: base64 } },
-            { type: "text", text: swatches.length > 0
-                ? `Analyze this Ball Sort puzzle. I sampled these colors: ${swatches.map(s => s.key).join(", ")}. If you spot any color I missed, list it in extra_colors. For any "?" slots, estimate missing colors in the missing array.`
-                : colorCount > 0
-                  ? `Analyze this Ball Sort puzzle. There are exactly ${colorCount} distinct colors. For any "?" slots, populate the missing array.`
-                  : "Analyze this Ball Sort puzzle. For any '?' slots, populate the missing array."
-            }
-          ]
-        }]
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: mime, data: base64 } },
+              { type: "text", text: swatches.length > 0
+                  ? `Analyze this Ball Sort puzzle. I sampled these colors: ${swatches.map(s => s.key).join(", ")}. If you spot any color I missed, list it in extra_colors. For any "?" slots, estimate missing colors in the missing array. Return raw JSON only starting with {.`
+                  : colorCount > 0
+                    ? `Analyze this Ball Sort puzzle. There are exactly ${colorCount} distinct colors. For any "?" slots, populate the missing array. Return raw JSON only starting with {.`
+                    : `Analyze this Ball Sort puzzle. For any "?" slots, populate the missing array. Return raw JSON only starting with {.`
+              }
+            ]
+          },
+          {
+            role: "assistant",
+            content: "{"
+          }
+        ]
       })
     });
 
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
-    const text = data.content?.find(b => b.type === "text")?.text || "";
-    const jsonMatch = text.match(/\{[\s\S]*"tubes"[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON found in response. Try again.");
-    const parsed = JSON.parse(jsonMatch[0]);
+    // Model continues from assistant prefill "{" so prepend it
+    const raw = data.content?.find(b => b.type === "text")?.text || "";
+    const text = raw.trimStart().startsWith("{") ? raw : "{" + raw;
+
+    // Strategy 1: find outermost { } block
+    let parsed = null;
+    const braceStart = text.indexOf("{");
+    const braceEnd = text.lastIndexOf("}");
+    if (braceStart !== -1 && braceEnd > braceStart) {
+      try { parsed = JSON.parse(text.slice(braceStart, braceEnd + 1)); } catch(e) {}
+    }
+    // Strategy 2: strip markdown fences and try again
+    if (!parsed) {
+      try { parsed = JSON.parse(text.replace(/```json|```/gi, "").trim()); } catch(e) {}
+    }
+    // Strategy 3: regex for tubes key
+    if (!parsed) {
+      const m = text.match(/\{[\s\S]*?"tubes"[\s\S]*?\}/);
+      if (m) { try { parsed = JSON.parse(m[0]); } catch(e) {} }
+    }
+    if (!parsed || !parsed.tubes) {
+      throw new Error(`Could not parse response. Raw: ${text.slice(0, 120)}`);
+    }
 
     if (parsed.tubes && Array.isArray(parsed.tubes)) {
       const normalized = parsed.tubes.map(t =>
