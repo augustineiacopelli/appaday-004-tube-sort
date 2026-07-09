@@ -356,6 +356,95 @@
   }
   .color-chip:hover { transform: scale(1.08); }
 
+  /* ── Eyedropper modal ── */
+  #dropper-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 400;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  #dropper-overlay.open { display: flex; }
+  #dropper-header {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+  #dropper-header strong { color: var(--accent); display: block; font-size: 13px; margin-bottom: 4px; }
+  #dropper-canvas-wrap {
+    position: relative;
+    cursor: crosshair;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 100%;
+    flex-shrink: 0;
+  }
+  #dropper-canvas { display: block; max-width: 100%; max-height: 55vh; }
+  #dropper-magnifier {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    pointer-events: none;
+    display: none;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+  #dropper-magnifier canvas { position: absolute; top: 0; left: 0; }
+  #dropper-sampled {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin: 12px 0;
+    flex-shrink: 0;
+    min-height: 36px;
+  }
+  .sampled-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 2px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.1s;
+  }
+  .sampled-swatch:hover { transform: scale(1.15); }
+  .sampled-swatch .swatch-x {
+    position: absolute;
+    top: -6px; right: -6px;
+    width: 14px; height: 14px;
+    background: var(--red);
+    border-radius: 50%;
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; line-height: 1;
+  }
+  #dropper-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-bottom: 8px;
+  }
+  #dropper-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    flex-shrink: 0;
+  }
+
   /* ── Footer ── */
   footer {
     text-align: center;
@@ -459,6 +548,25 @@
   <footer>
     SHIP SOMETHING EVERY DAY · IT COMPOUNDS
   </footer>
+</div>
+
+<!-- Eyedropper modal -->
+<div id="dropper-overlay">
+  <div id="dropper-header">
+    <strong>🎨 SAMPLE YOUR COLORS</strong>
+    Tap each distinct color in the puzzle once. Tap a swatch to remove it.
+  </div>
+  <div id="dropper-canvas-wrap">
+    <canvas id="dropper-canvas"></canvas>
+    <div id="dropper-magnifier"><canvas id="mag-canvas" width="64" height="64"></canvas></div>
+  </div>
+  <div id="dropper-sampled"></div>
+  <div id="dropper-actions">
+    <button class="btn-ghost" onclick="clearSwatches()">✕ CLEAR ALL</button>
+    <button class="btn-green" onclick="confirmDropper()" id="dropper-confirm-btn">✓ ANALYZE WITH THESE COLORS</button>
+    <button class="btn-ghost" onclick="cancelDropper()">CANCEL</button>
+  </div>
+  <div id="dropper-note">Sample at least 1 color · tap swatches to remove · colors feed directly into AI analysis</div>
 </div>
 
 <!-- Color picker modal -->
@@ -774,6 +882,159 @@ function handleSolve() {
   }, 30);
 }
 
+// ── Eyedropper ─────────────────────────────────────────────────────────────
+let dropperFile = null;
+let dropperBase64 = null;
+let dropperMime = null;
+let sampledColors = []; // array of {hex, key} where key is nearest COLORS match
+let dropperImg = null;
+let dropperCtx = null;
+
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+
+function hexDistance(hex1, hex2) {
+  const parse = h => [
+    parseInt(h.slice(1, 3), 16),
+    parseInt(h.slice(3, 5), 16),
+    parseInt(h.slice(5, 7), 16)
+  ];
+  const [r1, g1, b1] = parse(hex1);
+  const [r2, g2, b2] = parse(hex2);
+  return Math.sqrt((r1-r2)**2 + (g1-g2)**2 + (b1-b2)**2);
+}
+
+function nearestColorKey(hex) {
+  let best = null, bestDist = Infinity;
+  for (const [key, def] of Object.entries(COLORS)) {
+    if (key === "empty" || key === "?") continue;
+    const d = hexDistance(hex, def.bg);
+    if (d < bestDist) { bestDist = d; best = key; }
+  }
+  return best;
+}
+
+function isTooSimilar(hex) {
+  return sampledColors.some(s => hexDistance(hex, s.hex) < 30);
+}
+
+function renderSwatches() {
+  const el = document.getElementById("dropper-sampled");
+  el.innerHTML = "";
+  sampledColors.forEach((s, i) => {
+    const sw = document.createElement("div");
+    sw.className = "sampled-swatch";
+    sw.style.background = s.hex;
+    sw.title = `${s.hex} → ${s.key}`;
+    const x = document.createElement("div");
+    x.className = "swatch-x";
+    x.textContent = "×";
+    x.onclick = (e) => { e.stopPropagation(); sampledColors.splice(i, 1); renderSwatches(); };
+    sw.appendChild(x);
+    el.appendChild(sw);
+  });
+  document.getElementById("dropper-confirm-btn").disabled = sampledColors.length === 0;
+}
+
+function clearSwatches() {
+  sampledColors = [];
+  renderSwatches();
+}
+
+function openDropper(file, base64, mime) {
+  dropperFile = file;
+  dropperBase64 = base64;
+  dropperMime = mime;
+  sampledColors = [];
+
+  const overlay = document.getElementById("dropper-overlay");
+  overlay.classList.add("open");
+
+  const canvas = document.getElementById("dropper-canvas");
+  dropperCtx = canvas.getContext("2d");
+  dropperImg = new Image();
+  dropperImg.onload = () => {
+    canvas.width  = dropperImg.naturalWidth;
+    canvas.height = dropperImg.naturalHeight;
+    dropperCtx.drawImage(dropperImg, 0, 0);
+  };
+  dropperImg.src = "data:" + mime + ";base64," + base64;
+
+  // Touch / click to sample
+  const wrap = document.getElementById("dropper-canvas-wrap");
+  wrap.ontouchstart = wrap.onclick = sampleFromEvent;
+
+  // Magnifier on mouse move (desktop)
+  canvas.onmousemove = showMagnifier;
+  canvas.onmouseleave = () => { document.getElementById("dropper-magnifier").style.display = "none"; };
+
+  renderSwatches();
+}
+
+function getCanvasXY(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width  / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const src = e.touches ? e.touches[0] : e;
+  return {
+    x: Math.round((src.clientX - rect.left) * scaleX),
+    y: Math.round((src.clientY - rect.top)  * scaleY),
+    cx: src.clientX - rect.left,
+    cy: src.clientY - rect.top,
+  };
+}
+
+function sampleFromEvent(e) {
+  e.preventDefault();
+  const canvas = document.getElementById("dropper-canvas");
+  const { x, y } = getCanvasXY(e, canvas);
+  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+  // Sample a 5x5 average for stability
+  let r = 0, g = 0, b = 0, count = 0;
+  const imgData = dropperCtx.getImageData(Math.max(0, x-2), Math.max(0, y-2), 5, 5);
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    r += imgData.data[i]; g += imgData.data[i+1]; b += imgData.data[i+2]; count++;
+  }
+  r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
+  const hex = rgbToHex(r, g, b);
+  if (isTooSimilar(hex)) return; // skip duplicates
+  const key = nearestColorKey(hex);
+  sampledColors.push({ hex, key });
+  renderSwatches();
+}
+
+function showMagnifier(e) {
+  const canvas = document.getElementById("dropper-canvas");
+  const mag = document.getElementById("dropper-magnifier");
+  const magCanvas = document.getElementById("mag-canvas");
+  const magCtx = magCanvas.getContext("2d");
+  const { x, y, cx, cy } = getCanvasXY(e, canvas);
+  const zoom = 4, size = 64;
+  magCtx.clearRect(0, 0, size, size);
+  magCtx.drawImage(canvas, x - size/(zoom*2), y - size/(zoom*2), size/zoom, size/zoom, 0, 0, size, size);
+  // crosshair
+  magCtx.strokeStyle = "rgba(255,255,255,0.8)";
+  magCtx.lineWidth = 1;
+  magCtx.beginPath(); magCtx.moveTo(size/2, 0); magCtx.lineTo(size/2, size); magCtx.stroke();
+  magCtx.beginPath(); magCtx.moveTo(0, size/2); magCtx.lineTo(size, size/2); magCtx.stroke();
+  mag.style.display = "block";
+  mag.style.left = (cx + 12) + "px";
+  mag.style.top  = (cy - 44) + "px";
+}
+
+function cancelDropper() {
+  document.getElementById("dropper-overlay").classList.remove("open");
+  document.getElementById("file-input").value = "";
+  document.getElementById("upload-btn").disabled = false;
+}
+
+async function confirmDropper() {
+  document.getElementById("dropper-overlay").classList.remove("open");
+  await runAnalysis(dropperFile, dropperBase64, dropperMime, sampledColors);
+  document.getElementById("upload-btn").disabled = false;
+}
+
 // ── Screenshot analysis ────────────────────────────────────────────────────
 async function handleUpload(event) {
   const file = event.target.files[0];
@@ -784,19 +1045,37 @@ async function handleUpload(event) {
     openSettings();
     return;
   }
-  setStatus("Analyzing screenshot with AI…");
   document.getElementById("upload-btn").disabled = true;
 
-  try {
-    const base64 = await new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result.split(",")[1]);
-      r.onerror = rej;
-      r.readAsDataURL(file);
-    });
+  const base64 = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(",")[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+  const mime = file.type || "image/png";
 
-    const colorConstraint = colorCount > 0
-      ? `\nCRITICAL CONSTRAINT: This puzzle contains EXACTLY ${colorCount} distinct colors (not counting "?" and "empty"). You MUST identify exactly ${colorCount} different color values across all tubes. If you find yourself using more or fewer than ${colorCount} colors, re-examine the image — you have either merged two similar colors into one or split one color into two. Adjust until you have exactly ${colorCount}.`
+  // Open eyedropper first — user samples colors, then we analyze
+  openDropper(file, base64, mime);
+  event.target.value = "";
+}
+
+async function runAnalysis(file, base64, mime, swatches) {
+  const apiKey = document.getElementById("api-key-input").value.trim();
+  setStatus("Analyzing screenshot with AI…");
+
+  try {
+    // Build color palette description from sampled swatches
+    const paletteLines = swatches.map((s, i) =>
+      `  color${i + 1}: "${s.key}" (you sampled hex ${s.hex} from the image — this is the actual color)`
+    ).join("\n");
+
+    const paletteConstraint = swatches.length > 0
+      ? `\nCOLOR PALETTE — the user has sampled the EXACT colors present in this puzzle using an eyedropper tool. You MUST use only these color keys (plus "?" and "empty"):\n${paletteLines}\n\nDo NOT use any color key not listed above. Every filled slot must map to one of these ${swatches.length} colors.`
+      : "";
+
+    const countConstraint = colorCount > 0 && swatches.length === 0
+      ? `\nCRITICAL CONSTRAINT: This puzzle contains EXACTLY ${colorCount} distinct colors. You MUST identify exactly ${colorCount} different color values.`
       : "";
 
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
@@ -808,7 +1087,7 @@ async function handleUpload(event) {
         "anthropic-dangerous-direct-browser-access": "true"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         system: `You are a Ball Sort puzzle color analyzer. Your only job is to read tube contents from a screenshot and return a JSON object.
 
@@ -829,24 +1108,26 @@ OUTPUT FORMAT: {"tubes": [[slot0,slot1,slot2,slot3], ...]} where each slot is re
   ?        — slot is hidden, obscured, or shows a question mark in-game
   empty    — slot is visibly empty (no color)
 
-DISAMBIGUATION RULES — read carefully:
-- red vs darkred: darkred is MUCH darker, almost maroon/wine. If it could be either, ask: is it dark enough to be called maroon? If yes, use darkred.
-- pink vs magenta: magenta is HOT and saturated (fuchsia). Pink is soft and pastel. If it is vivid and punchy, use magenta.
-- blue vs purple: blue has no red in it. Purple leans violet. If you see cyan or sky blue, use blue. If there is any red tinge, use purple.
+DISAMBIGUATION RULES:
+- red vs darkred: darkred is much darker, almost maroon/wine.
+- pink vs magenta: magenta is HOT and saturated (fuchsia). Pink is soft and pastel.
+- blue vs purple: blue has no red in it. Purple leans violet.
 - purple vs magenta: purple is violet (blue+red). Magenta is pink+red with no blue.
-- brown vs orange: brown is dark and earthy. Orange is bright and warm. Dark orange = brown.
-- gray vs blue: gray has no color cast. Blue-gray = blue.
-${colorConstraint}
-Tubes are listed left-to-right, top-row first, then middle row, then bottom row. Each tube has exactly 4 slots. Use "?" for any hidden/unknown slot. Use "empty" for visibly empty slots.
+- brown vs orange: brown is dark and earthy. Orange is bright and warm.
+- gray vs blue: gray has no color cast.
+${paletteConstraint}${countConstraint}
+Tubes are listed left-to-right, top-row first, then middle row, then bottom row. Each tube has exactly 4 slots. Use "?" for hidden/unknown slots. Use "empty" for visibly empty slots.
 
 Output ONLY the raw JSON. No markdown, no backticks, no explanation.`,
         messages: [{
           role: "user",
           content: [
-            { type: "image", source: { type: "base64", media_type: file.type || "image/png", data: base64 } },
-            { type: "text", text: colorCount > 0
-                ? `Analyze this Ball Sort puzzle. There are exactly ${colorCount} distinct colors present. Return the JSON tube layout.`
-                : "Analyze this Ball Sort puzzle and return the JSON tube layout."
+            { type: "image", source: { type: "base64", media_type: mime, data: base64 } },
+            { type: "text", text: swatches.length > 0
+                ? `Analyze this Ball Sort puzzle. The ${swatches.length} colors present are: ${swatches.map(s => s.key).join(", ")}. Return the JSON tube layout using only those color keys.`
+                : colorCount > 0
+                  ? `Analyze this Ball Sort puzzle. There are exactly ${colorCount} distinct colors present. Return the JSON tube layout.`
+                  : "Analyze this Ball Sort puzzle and return the JSON tube layout."
             }
           ]
         }]
@@ -881,9 +1162,6 @@ Output ONLY the raw JSON. No markdown, no backticks, no explanation.`,
   } catch (err) {
     setStatus("Error: " + err.message);
   }
-
-  document.getElementById("upload-btn").disabled = false;
-  event.target.value = "";
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
