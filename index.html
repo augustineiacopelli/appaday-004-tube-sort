@@ -1128,10 +1128,6 @@ Output ONLY raw JSON. No markdown, no backticks, no explanation.`,
                     : `Analyze this Ball Sort puzzle. For any "?" slots, populate the missing array. Return raw JSON only starting with {.`
               }
             ]
-          },
-          {
-            role: "assistant",
-            content: "{"
           }
         ]
       })
@@ -1139,9 +1135,7 @@ Output ONLY raw JSON. No markdown, no backticks, no explanation.`,
 
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
-    // Model continues from assistant prefill "{" so prepend it
-    const raw = data.content?.find(b => b.type === "text")?.text || "";
-    const text = raw.trimStart().startsWith("{") ? raw : "{" + raw;
+    const text = data.content?.find(b => b.type === "text")?.text || "";
 
     // Strategy 1: find outermost { } block
     let parsed = null;
