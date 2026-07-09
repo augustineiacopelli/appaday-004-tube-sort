@@ -1136,6 +1136,7 @@ Output ONLY raw JSON. No markdown, no backticks, no explanation.`,
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
     const text = data.content?.find(b => b.type === "text")?.text || "";
+    console.log("RAW API RESPONSE:", text); // diagnostic
 
     // Strategy 1: find outermost { } block
     let parsed = null;
@@ -1154,7 +1155,7 @@ Output ONLY raw JSON. No markdown, no backticks, no explanation.`,
       if (m) { try { parsed = JSON.parse(m[0]); } catch(e) {} }
     }
     if (!parsed || !parsed.tubes) {
-      throw new Error(`Could not parse response. Raw: ${text.slice(0, 120)}`);
+      throw new Error(`Parse failed. Response was: "${text.slice(0, 200)}"`);
     }
 
     if (parsed.tubes && Array.isArray(parsed.tubes)) {
