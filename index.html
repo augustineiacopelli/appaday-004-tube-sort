@@ -212,6 +212,7 @@
     padding: 10px 14px;
     margin-bottom: 20px;
     min-height: 38px;
+    line-height: 1.7;
     display: none;
   }
   #status-bar.visible { display: block; }
@@ -1065,13 +1066,12 @@ async function runAnalysis(file, base64, mime, swatches) {
   setStatus("Analyzing screenshot with AI…");
 
   try {
-    // Build color palette description from sampled swatches
     const paletteLines = swatches.map((s, i) =>
-      `  color${i + 1}: "${s.key}" (you sampled hex ${s.hex} from the image — this is the actual color)`
+      `  color${i + 1}: "${s.key}" (sampled hex ${s.hex})`
     ).join("\n");
 
     const paletteConstraint = swatches.length > 0
-      ? `\nCOLOR PALETTE — the user has sampled the EXACT colors present in this puzzle using an eyedropper tool. You MUST use only these color keys (plus "?" and "empty"):\n${paletteLines}\n\nDo NOT use any color key not listed above. Every filled slot must map to one of these ${swatches.length} colors.`
+      ? `\nCOLOR PALETTE — the user sampled these colors via eyedropper:\n${paletteLines}\n\nPrefer these color keys for every slot. However, if you clearly see a color in the image that does not match any sampled color, use the best matching key from the master list and add it to "extra_colors" in your response (see OUTPUT FORMAT below). Do not invent colors — only flag genuinely distinct colors the user may have missed.`
       : "";
 
     const countConstraint = colorCount > 0 && swatches.length === 0
@@ -1088,46 +1088,41 @@ async function runAnalysis(file, base64, mime, swatches) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        system: `You are a Ball Sort puzzle color analyzer. Your only job is to read tube contents from a screenshot and return a JSON object.
+        max_tokens: 1500,
+        system: `You are a Ball Sort puzzle color analyzer. Read tube contents from a screenshot and return a JSON object.
 
-OUTPUT FORMAT: {"tubes": [[slot0,slot1,slot2,slot3], ...]} where each slot is read top-to-bottom and is exactly one of these color keys:
+OUTPUT FORMAT:
+{
+  "tubes": [[slot0,slot1,slot2,slot3], ...],
+  "extra_colors": ["colorkey", ...],
+  "missing": [{"color": "colorkey", "count": N}, ...]
+}
 
-  red      — bright fire-engine red (e.g. #e63946)
-  pink     — soft pastel pink or light rose (e.g. #f48fb1)
-  blue     — sky blue or cyan-blue, clearly light (e.g. #4fc3f7)
-  green    — solid mid-tone green or dark green (e.g. #43a047)
-  purple   — medium violet-purple (e.g. #9c27b0)
-  orange   — warm amber-orange (e.g. #ff9800)
-  brown    — earthy tan or dark brown (e.g. #795548)
-  gray     — neutral silver-gray (e.g. #90a4ae)
-  magenta  — vivid hot pink / fuchsia / deep pink (e.g. #e91e63) — brighter and more saturated than pink
-  darkred  — deep maroon or wine red, much darker than red (e.g. #7b1515)
-  teal     — blue-green, clearly greenish-blue (e.g. #00897b)
-  yellow   — bright yellow (e.g. #fdd835)
-  ?        — slot is hidden, obscured, or shows a question mark in-game
-  empty    — slot is visibly empty (no color)
+- "tubes": each slot top-to-bottom is one color key or "?" or "empty"
+- "extra_colors": list any color keys you see in the image that were NOT in the user's sampled palette (empty array [] if none). Only include genuinely distinct colors, not noise.
+- "missing": for each color key that appears in at least one "?" slot's tube, estimate how many hidden segments belong to that color based on context (tube counts, visible segments). If you cannot determine which colors are hidden, list each color that appears incomplete (visible count not a multiple of 4) with the number of segments still needed to complete it. Empty array [] if no "?" slots exist.
 
-DISAMBIGUATION RULES:
-- red vs darkred: darkred is much darker, almost maroon/wine.
-- pink vs magenta: magenta is HOT and saturated (fuchsia). Pink is soft and pastel.
-- blue vs purple: blue has no red in it. Purple leans violet.
-- purple vs magenta: purple is violet (blue+red). Magenta is pink+red with no blue.
-- brown vs orange: brown is dark and earthy. Orange is bright and warm.
-- gray vs blue: gray has no color cast.
+COLOR KEYS:
+  red, pink, blue, green, purple, orange, brown, gray, magenta, darkred, teal, yellow, ?, empty
+
+DISAMBIGUATION:
+- red vs darkred: darkred is much darker, maroon/wine.
+- pink vs magenta: magenta is vivid fuchsia. Pink is soft/pastel.
+- blue vs purple: blue has no red. Purple leans violet.
+- brown vs orange: brown is dark/earthy. Orange is bright/warm.
 ${paletteConstraint}${countConstraint}
-Tubes are listed left-to-right, top-row first, then middle row, then bottom row. Each tube has exactly 4 slots. Use "?" for hidden/unknown slots. Use "empty" for visibly empty slots.
+Tubes are left-to-right, top-row first. Each tube has exactly 4 slots. Use "?" for hidden/question-mark slots. Use "empty" for visibly empty slots.
 
-Output ONLY the raw JSON. No markdown, no backticks, no explanation.`,
+Output ONLY raw JSON. No markdown, no backticks, no explanation.`,
         messages: [{
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mime, data: base64 } },
             { type: "text", text: swatches.length > 0
-                ? `Analyze this Ball Sort puzzle. The ${swatches.length} colors present are: ${swatches.map(s => s.key).join(", ")}. Return the JSON tube layout using only those color keys.`
+                ? `Analyze this Ball Sort puzzle. I sampled these colors: ${swatches.map(s => s.key).join(", ")}. If you spot any color I missed, list it in extra_colors. For any "?" slots, estimate missing colors in the missing array.`
                 : colorCount > 0
-                  ? `Analyze this Ball Sort puzzle. There are exactly ${colorCount} distinct colors present. Return the JSON tube layout.`
-                  : "Analyze this Ball Sort puzzle and return the JSON tube layout."
+                  ? `Analyze this Ball Sort puzzle. There are exactly ${colorCount} distinct colors. For any "?" slots, populate the missing array.`
+                  : "Analyze this Ball Sort puzzle. For any '?' slots, populate the missing array."
             }
           ]
         }]
@@ -1137,8 +1132,9 @@ Output ONLY the raw JSON. No markdown, no backticks, no explanation.`,
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
     const text = data.content?.find(b => b.type === "text")?.text || "";
-    const clean = text.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(clean);
+    const jsonMatch = text.match(/\{[\s\S]*"tubes"[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found in response. Try again.");
+    const parsed = JSON.parse(jsonMatch[0]);
 
     if (parsed.tubes && Array.isArray(parsed.tubes)) {
       const normalized = parsed.tubes.map(t =>
@@ -1154,7 +1150,27 @@ Output ONLY the raw JSON. No markdown, no backticks, no explanation.`,
       document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b => {
         b.classList.toggle("active", b.textContent === String(tubeCount));
       });
-      setStatus(`Detected ${tubeCount} tubes. Review cells (click to edit), then hit SOLVE. Replace any '?' as you reveal them in-game.`);
+
+      // Build status message
+      let msg = `Detected ${tubeCount} tubes. Review cells (click to edit), then hit SOLVE.`;
+
+      // Extra colors the user missed
+      const extras = (parsed.extra_colors || []).filter(k => COLORS[k]);
+      if (extras.length > 0) {
+        msg += ` ⚠ Possible missed color${extras.length > 1 ? "s" : ""}: ${extras.map(k => COLORS[k].label).join(", ")} — check tubes and correct if needed.`;
+      }
+
+      // Missing/hidden segment breakdown
+      const missing = (parsed.missing || []).filter(m => m.color && m.count > 0);
+      if (missing.length > 0) {
+        const parts = missing.map(m => {
+          const def = COLORS[m.color];
+          return `${def ? def.label : m.color} ×${m.count}`;
+        });
+        msg += ` 🔍 Hidden segments: ${parts.join(", ")}.`;
+      }
+
+      setStatus(msg);
       render();
     } else {
       setStatus("Could not parse AI response. Try manual entry by clicking each cell.");
