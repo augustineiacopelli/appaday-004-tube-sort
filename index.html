@@ -150,7 +150,7 @@
   </div>
   <div id="controls">
     <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleUpload(event)" />
-    <button class="btn-yellow" onclick="document.getElementById('file-input').click()" id="upload-btn">&#128247; UPLOAD &amp; ANALYZE</button>
+    <button class="btn-yellow" onclick="triggerUpload()" id="upload-btn">&#128247; UPLOAD &amp; ANALYZE</button>
     <button class="btn-green" onclick="handleSolve()">&#9889; SOLVE</button>
     <button class="btn-danger" onclick="handleReset()">&#10005; RESET</button>
   </div>
@@ -291,8 +291,11 @@ function openSettings() { document.getElementById("settings-overlay").classList.
 function closeSettings() { document.getElementById("settings-overlay").classList.remove("open"); updateGearState(); }
 function updateGearState() { document.getElementById("settings-btn").classList.toggle("keyed",!!document.getElementById("api-key-input").value.trim()); }
 function toggleKeyVis() { const i=document.getElementById("api-key-input"),b=document.getElementById("toggle-key-btn");if(i.type==="password"){i.type="text";b.textContent="HIDE";}else{i.type="password";b.textContent="SHOW";} }
-function setTubeCount(n) { tubeCount=n;if(n>tubes.length)tubes=[...tubes,...emptyTubes(n-tubes.length)];else tubes=tubes.slice(0,n);solution=null;solvingStep=0;document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b=>b.classList.toggle("active",b.textContent===String(n)));render(); }
-function setColorCount(n) { colorCount=n;document.querySelectorAll("#color-count-btns .cnt-btn").forEach(b=>b.classList.toggle("active",b.textContent===(n===0?"AUTO":String(n)))); }
+let tubeCountSet = false;
+let colorCountSet = false;
+
+function setTubeCount(n) { tubeCount=n; tubeCountSet=true; if(n>tubes.length)tubes=[...tubes,...emptyTubes(n-tubes.length)];else tubes=tubes.slice(0,n);solution=null;solvingStep=0;document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b=>b.classList.toggle("active",b.textContent===String(n)));render(); }
+function setColorCount(n) { colorCount=n; colorCountSet=true; document.querySelectorAll("#color-count-btns .cnt-btn").forEach(b=>b.classList.toggle("active",b.textContent===(n===0?"AUTO":String(n)))); }
 
 // Controls
 function setStatus(msg) { const el=document.getElementById("status-bar");if(msg){el.textContent=msg;el.classList.add("visible");}else el.classList.remove("visible"); }
@@ -308,7 +311,16 @@ function handleSolve() {
   },30);
 }
 
-// Step 1: Upload -> API reads layout
+function triggerUpload() {
+  const apiKey=document.getElementById("api-key-input").value.trim();
+  if(!apiKey||!tubeCountSet) {
+    setStatus("Set your API key and tube count in Settings before uploading.");
+    openSettings();
+    return;
+  }
+  document.getElementById("file-input").click();
+}
+
 async function handleUpload(event) {
   const file=event.target.files[0]; if(!file) return;
   event.target.value="";
@@ -322,8 +334,8 @@ async function handleUpload(event) {
     const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});
     const mime=file.type||"image/png";
 
-    const countHint = colorCount>0 ? `There are exactly ${colorCount} distinct colors in this puzzle.` : "";
-    const tubeHint  = `There are ${tubeCount} tubes total.`;
+    const countHint = colorCount>0 ? `IMPORTANT: There are exactly ${colorCount} distinct colors in this puzzle. You MUST use exactly ${colorCount} different color names across all tubes.` : "";
+    const tubeHint  = `IMPORTANT: There are exactly ${tubeCount} tubes in this puzzle. You MUST list exactly ${tubeCount} tubes.`;
 
     // Turn 1: describe what you see
     const turn1 = await fetch("https://api.anthropic.com/v1/messages",{
@@ -332,51 +344,61 @@ async function handleUpload(event) {
       body:JSON.stringify({
         model:"claude-sonnet-4-6",
         max_tokens:2000,
-        system:`You are analyzing a Ball Sort puzzle screenshot. ${tubeHint} ${countHint}
+        system:`You are analyzing a Ball Sort puzzle screenshot. The puzzle shows test tubes filled with colored segments.
 
-List every tube from left-to-right, top-row first. For each tube list its 4 segments top-to-bottom.
+${tubeHint}
+${countHint}
+
+List every tube left-to-right, top-row first, then middle row, then bottom row.
+Each tube has exactly 4 segments listed top-to-bottom.
+Number each tube: Tube 1, Tube 2, Tube 3... up to Tube ${tubeCount}.
+
 Use ONLY these color names: red, pink, blue, green, purple, orange, brown, gray, magenta, darkred, teal, yellow
 Use "?" for any hidden/question-mark segment.
-Use "empty" for empty slots.
+Use "empty" for visibly empty slots.
 
 Color disambiguation:
-- darkred = deep maroon/wine, much darker than red
-- magenta = vivid hot fuchsia, much brighter/pinker than red
-- pink = soft pastel rose, NOT bright
+- darkred = deep maroon/wine, MUCH darker than red
+- magenta = vivid hot fuchsia/hot-pink, very bright
+- pink = soft pastel rose, pale and light
 - purple = violet with blue tones
-- brown = dark earthy tan, NOT orange`,
-        messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mime,data:base64}},{type:"text",text:"List all tubes and their segment colors."}]}]
+- brown = dark earthy tan, NOT orange
+- gray = neutral silver, no color tint
+
+Do NOT skip any tubes. Count them carefully in the image.`,
+        messages:[{role:"user",content:[
+          {type:"image",source:{type:"base64",media_type:mime,data:base64}},
+          {type:"text",text:`This puzzle has exactly ${tubeCount} tubes. List all ${tubeCount} tubes and their 4 segment colors each, top-to-bottom.`}
+        ]}]
       })
     });
     const d1=await turn1.json();
     if(d1.error) throw new Error(d1.error.message);
     const description=d1.content?.find(b=>b.type==="text")?.text||"";
 
-    // Turn 2: convert description to JSON
+    // Turn 2: convert to JSON
     const turn2=await fetch("https://api.anthropic.com/v1/messages",{
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({
         model:"claude-sonnet-4-6",
         max_tokens:2000,
-        system:`Convert tube descriptions to JSON. Output ONLY a raw JSON object, nothing else.
+        system:`Convert tube color descriptions to JSON. Output ONLY a raw JSON object, nothing else, no markdown.
 Format: {"tubes":[[s0,s1,s2,s3],...]}
+The array must contain exactly ${tubeCount} tubes.
 Each slot must be one of: red, pink, blue, green, purple, orange, brown, gray, magenta, darkred, teal, yellow, ?, empty`,
-        messages:[
-          {role:"user",content:`Convert this to JSON:\n\n${description}`},
-        ]
+        messages:[{role:"user",content:`Convert this to JSON. Must have exactly ${tubeCount} tubes:\n\n${description}`}]
       })
     });
     const d2=await turn2.json();
     if(d2.error) throw new Error(d2.error.message);
     const raw=d2.content?.find(b=>b.type==="text")?.text||"";
 
-    // Extract JSON from response
     let parsed=null;
     const s=raw.indexOf("{"), e=raw.lastIndexOf("}");
     if(s!==-1&&e>s){try{parsed=JSON.parse(raw.slice(s,e+1));}catch(err){}}
     if(!parsed){try{parsed=JSON.parse(raw.replace(/```json|```/gi,"").trim());}catch(err){}}
-    if(!parsed||!Array.isArray(parsed.tubes)) throw new Error("Could not parse response. Check console.");
+    if(!parsed||!Array.isArray(parsed.tubes)) throw new Error(`Could not parse JSON. Raw response: ${raw.slice(0,150)}`);
 
     tubes=parsed.tubes.map(t=>Array.from({length:TUBE_SIZE},(_,i)=>{const v=t[i];return(v&&(COLORS[v]||v==="?"||v==="empty"))?v:"empty";}));
     tubeCount=tubes.length;
