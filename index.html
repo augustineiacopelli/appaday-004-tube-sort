@@ -7,497 +7,155 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg:       #080b10;
-    --surface:  #0f1520;
-    --border:   rgba(255,255,255,0.08);
-    --accent:   #f5c518;
-    --green:    #39d353;
-    --red:      #e63946;
-    --text:     #e8eaf0;
-    --muted:    #4a5060;
-    --radius:   10px;
-    --mono:     'Share Tech Mono', monospace;
-    --sans:     'Barlow', sans-serif;
+    --bg:      #080b10;
+    --surface: #0f1520;
+    --border:  rgba(255,255,255,0.08);
+    --accent:  #f5c518;
+    --green:   #39d353;
+    --red:     #e63946;
+    --text:    #e8eaf0;
+    --muted:   #4a5060;
+    --radius:  10px;
+    --mono:    'Share Tech Mono', monospace;
+    --sans:    'Barlow', sans-serif;
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100dvh; display: flex; flex-direction: column; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── Portfolio header bar ── */
+  /* ── Top bar ── */
   #portfolio-bar {
-    background: rgba(0,0,0,0.6);
-    border-bottom: 1px solid var(--border);
-    padding: 8px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    backdrop-filter: blur(8px);
-    flex-shrink: 0;
+    background: rgba(0,0,0,0.6); border-bottom: 1px solid var(--border);
+    padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px); flex-shrink: 0;
   }
   #portfolio-bar a { color: var(--accent); text-decoration: none; }
-  #portfolio-bar a:hover { text-decoration: underline; }
-
-  /* ── Main layout ── */
-  #app {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    padding: 24px 16px 40px;
-  }
-
-  /* ── Title ── */
-  .title-block { text-align: center; margin-bottom: 28px; }
-  .title-block h1 {
-    font-family: var(--mono);
-    font-size: clamp(24px, 6vw, 42px);
-    font-weight: 400;
-    letter-spacing: 6px;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .title-block p {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    margin-top: 6px;
-    text-transform: uppercase;
-  }
-
-  /* ── Settings gear button ── */
   #settings-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--muted);
-    font-size: 13px;
-    padding: 2px 6px;
-    cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
-    line-height: 1;
-    vertical-align: middle;
+    background: none; border: 1px solid var(--border); border-radius: 4px;
+    color: var(--muted); font-size: 13px; padding: 2px 6px; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s; line-height: 1; vertical-align: middle;
   }
   #settings-btn:hover { color: var(--accent); border-color: var(--accent); }
   #settings-btn.keyed { color: var(--green); border-color: var(--green); }
 
-  /* ── Settings modal ── */
-  #settings-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 300;
-    align-items: center;
-    justify-content: center;
-  }
-  #settings-overlay.open { display: flex; }
-  #settings-modal {
-    background: #0f1520;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 14px;
-    padding: 24px;
-    width: min(400px, 92vw);
-  }
-  #settings-modal h3 {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    margin-bottom: 18px;
-  }
-  #settings-modal label {
-    display: block;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    margin-bottom: 7px;
-  }
-  #key-row { display: flex; gap: 8px; margin-bottom: 10px; }
-  #api-key-input {
-    flex: 1;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 13px;
-    padding: 9px 12px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  #api-key-input:focus { border-color: var(--accent); }
-  .key-note {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-  .key-note a { color: var(--accent); }
-  #settings-close-row { display: flex; justify-content: flex-end; margin-top: 18px; }
+  /* ── App shell ── */
+  #app { flex: 1; display: flex; flex-direction: column; width: 100%; padding: 24px 16px 40px; }
+  .title-block { text-align: center; margin-bottom: 28px; }
+  .title-block h1 { font-family: var(--mono); font-size: clamp(24px,6vw,42px); font-weight: 400; letter-spacing: 6px; color: var(--accent); line-height: 1; }
+  .title-block p { font-size: 11px; color: var(--muted); letter-spacing: 3px; margin-top: 6px; text-transform: uppercase; }
 
-  /* ── Control row ── */
-  #controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
-
-  button {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 1px;
-    border: none;
-    border-radius: 6px;
-    padding: 9px 16px;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    font-weight: 400;
-  }
+  /* ── Buttons ── */
+  button { font-family: var(--mono); font-size: 12px; letter-spacing: 1px; border: none; border-radius: 6px; padding: 9px 16px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; font-weight: 400; }
   button:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .btn-yellow  { background: var(--accent); color: #000; }
-  .btn-green   { background: var(--green);  color: #000; }
-  .btn-ghost   { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
-  .btn-ghost.active { color: var(--accent); border-color: var(--accent); }
-  .btn-danger  { background: #2a1010; color: var(--red); border: 1px solid #3a1515; }
-
-  .tube-count-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .tube-count-row span {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-  }
-  .cnt-btn {
-    padding: 5px 10px;
-    font-size: 11px;
-    background: var(--surface);
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-  }
+  .btn-yellow { background: var(--accent); color: #000; }
+  .btn-green  { background: var(--green);  color: #000; }
+  .btn-ghost  { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+  .btn-danger { background: #2a1010; color: var(--red); border: 1px solid #3a1515; }
+  .cnt-btn { padding: 5px 10px; font-size: 11px; background: var(--surface); color: var(--muted); border: 1px solid var(--border); border-radius: 4px; }
   .cnt-btn.active { color: var(--accent); border-color: var(--accent); }
 
-  /* ── Status bar ── */
-  #status-bar {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--accent);
-    background: rgba(245,197,24,0.06);
-    border: 1px solid rgba(245,197,24,0.15);
-    border-radius: 6px;
-    padding: 10px 14px;
-    margin-bottom: 20px;
-    min-height: 38px;
-    line-height: 1.7;
-    display: none;
-  }
+  /* ── Controls ── */
+  #controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-bottom: 20px; }
+
+  /* ── Status ── */
+  #status-bar { font-family: var(--mono); font-size: 12px; color: var(--accent); background: rgba(245,197,24,0.06); border: 1px solid rgba(245,197,24,0.15); border-radius: 6px; padding: 10px 14px; margin-bottom: 20px; min-height: 38px; line-height: 1.7; display: none; }
   #status-bar.visible { display: block; }
 
   /* ── Solution nav ── */
-  #solution-nav {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
+  #solution-nav { display: none; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
   #solution-nav.visible { display: flex; }
-  #move-label {
-    font-family: var(--mono);
-    font-size: 13px;
-    text-align: center;
-    min-width: 180px;
-  }
+  #move-label { font-family: var(--mono); font-size: 13px; text-align: center; min-width: 180px; }
   #move-label .step-num { color: var(--accent); }
   #move-label .step-move { color: #aaa; font-size: 11px; display: block; margin-top: 3px; }
   #move-label .solved { color: var(--green); }
 
   /* ── Tubes grid ── */
-  #tubes-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    align-content: flex-start;
-    flex: 1;
-    width: 100%;
-  }
-
-  .tube-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px 8px 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
-    cursor: default;
-  }
-  .tube-wrapper.from {
-    border-color: rgba(245,197,24,0.5);
-    background: rgba(245,197,24,0.07);
-    box-shadow: 0 0 12px rgba(245,197,24,0.15);
-  }
-  .tube-wrapper.to {
-    border-color: rgba(57,211,83,0.5);
-    background: rgba(57,211,83,0.07);
-    box-shadow: 0 0 12px rgba(57,211,83,0.15);
-  }
-  .tube-label {
-    font-family: var(--mono);
-    font-size: 9px;
-    color: var(--muted);
-    margin-bottom: 5px;
-    letter-spacing: 1px;
-  }
+  #tubes-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-content: flex-start; flex: 1; width: 100%; }
+  .tube-wrapper { display: flex; flex-direction: column; align-items: center; padding: 10px 8px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: all 0.25s; }
+  .tube-wrapper.from { border-color: rgba(245,197,24,0.5); background: rgba(245,197,24,0.07); box-shadow: 0 0 12px rgba(245,197,24,0.15); }
+  .tube-wrapper.to   { border-color: rgba(57,211,83,0.5);  background: rgba(57,211,83,0.07);  box-shadow: 0 0 12px rgba(57,211,83,0.15); }
+  .tube-label { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-bottom: 5px; letter-spacing: 1px; }
   .tube-wrapper.from .tube-label { color: var(--accent); }
   .tube-wrapper.to   .tube-label { color: var(--green); }
-  .tube-move-tag {
-    font-family: var(--mono);
-    font-size: 9px;
-    margin-top: 5px;
-    letter-spacing: 1px;
-  }
+  .tube-move-tag { font-family: var(--mono); font-size: 9px; margin-top: 5px; letter-spacing: 1px; }
   .tube-wrapper.from .tube-move-tag { color: var(--accent); }
   .tube-wrapper.to   .tube-move-tag { color: var(--green); }
-
-  .cell {
-    width: 46px;
-    height: 46px;
-    border-radius: 7px;
-    border: 1px solid rgba(255,255,255,0.09);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
-    margin-bottom: 3px;
-    user-select: none;
-  }
+  .cell { width: 46px; height: 46px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.09); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; font-weight: 700; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; margin-bottom: 3px; user-select: none; }
   .cell:hover { transform: scale(1.1); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-  .cell.empty {
-    background: rgba(255,255,255,0.03);
-    border-style: dashed;
-    border-color: rgba(255,255,255,0.06);
-    color: transparent;
-  }
+  .cell.empty { background: rgba(255,255,255,0.03); border-style: dashed; border-color: rgba(255,255,255,0.06); color: transparent; }
+
+  /* ── Settings modal ── */
+  #settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 300; align-items: center; justify-content: center; }
+  #settings-overlay.open { display: flex; }
+  #settings-modal { background: #0f1520; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 24px; width: min(400px,92vw); max-height: 90vh; overflow-y: auto; }
+  #settings-modal h3 { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 3px; margin-bottom: 18px; }
+  #settings-modal label { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-bottom: 7px; }
+  #key-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  #api-key-input { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--mono); font-size: 13px; padding: 9px 12px; outline: none; transition: border-color 0.2s; }
+  #api-key-input:focus { border-color: var(--accent); }
+  .key-note { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .key-note a { color: var(--accent); }
+  #settings-close-row { display: flex; justify-content: flex-end; margin-top: 18px; }
+
+  /* ── Tap-to-map modal ── */
+  #mapper-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 400; flex-direction: column; align-items: center; overflow-y: auto; padding: 12px; gap: 10px; }
+  #mapper-overlay.open { display: flex; }
+  #mapper-header { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; text-align: center; flex-shrink: 0; }
+  #mapper-header strong { color: var(--accent); display: block; font-size: 14px; margin-bottom: 4px; }
+  #mapper-canvas-wrap { position: relative; cursor: crosshair; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; max-width: 100%; flex-shrink: 0; }
+  #mapper-canvas { display: block; max-width: 100%; max-height: 48vh; }
+  #mapper-magnifier { position: absolute; width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--accent); pointer-events: none; display: none; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.7); }
+  #mapper-magnifier canvas { position: absolute; top: 0; left: 0; }
+
+  /* ── Tube builder strip ── */
+  #tube-builder { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; width: 100%; }
+  #tube-builder-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+  #tube-slots { display: flex; gap: 6px; align-items: center; }
+  .build-slot { width: 44px; height: 44px; border-radius: 7px; border: 2px dashed var(--muted); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 9px; color: var(--muted); cursor: pointer; transition: transform 0.1s; }
+  .build-slot.filled { border-style: solid; border-color: rgba(255,255,255,0.15); }
+  .build-slot:hover { transform: scale(1.08); }
+  #tube-builder-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+  /* ── Built tubes preview ── */
+  #built-preview { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; flex-shrink: 0; min-height: 30px; }
+  .preview-tube { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+  .preview-tube span { font-family: var(--mono); font-size: 8px; color: var(--muted); }
+  .preview-slot { width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); }
+
+  #mapper-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; flex-shrink: 0; }
+  #mapper-note { font-family: var(--mono); font-size: 10px; color: var(--muted); text-align: center; flex-shrink: 0; }
 
   /* ── Color picker modal ── */
-  #picker-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-  }
+  #picker-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; align-items: center; justify-content: center; }
   #picker-overlay.open { display: flex; }
-  #picker-modal {
-    background: #0f1520;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px;
-    padding: 20px;
-    width: min(360px, 92vw);
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  #picker-modal h3 {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    margin-bottom: 14px;
-  }
-  #picker-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .color-chip {
-    padding: 7px 12px;
-    border-radius: 7px;
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.1);
-    transition: transform 0.1s;
-    min-width: 64px;
-    text-align: center;
-  }
+  #picker-modal { background: #0f1520; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 20px; width: min(360px,92vw); max-height: 90vh; overflow-y: auto; }
+  #picker-modal h3 { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 3px; margin-bottom: 14px; }
+  #picker-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .color-chip { padding: 7px 12px; border-radius: 7px; font-family: var(--mono); font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.1s; min-width: 64px; text-align: center; }
   .color-chip:hover { transform: scale(1.08); }
 
-  /* ── Eyedropper modal ── */
-  #dropper-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.92);
-    z-index: 400;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 16px;
-    overflow-y: auto;
-  }
-  #dropper-overlay.open { display: flex; }
-  #dropper-header {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    text-align: center;
-    margin-bottom: 10px;
-    flex-shrink: 0;
-  }
-  #dropper-header strong { color: var(--accent); display: block; font-size: 13px; margin-bottom: 4px; }
-  #dropper-canvas-wrap {
-    position: relative;
-    cursor: crosshair;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-    max-width: 100%;
-    flex-shrink: 0;
-  }
-  #dropper-canvas { display: block; max-width: 100%; max-height: 55vh; }
-  #dropper-magnifier {
-    position: absolute;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: 2px solid var(--accent);
-    pointer-events: none;
-    display: none;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.6);
-  }
-  #dropper-magnifier canvas { position: absolute; top: 0; left: 0; }
-  #dropper-sampled {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
-    margin: 12px 0;
-    flex-shrink: 0;
-    min-height: 36px;
-  }
-  .sampled-swatch {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    border: 2px solid rgba(255,255,255,0.2);
-    cursor: pointer;
-    position: relative;
-    transition: transform 0.1s;
-  }
-  .sampled-swatch:hover { transform: scale(1.15); }
-  .sampled-swatch .swatch-x {
-    position: absolute;
-    top: -6px; right: -6px;
-    width: 14px; height: 14px;
-    background: var(--red);
-    border-radius: 50%;
-    font-size: 9px;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-weight: 700; line-height: 1;
-  }
-  #dropper-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-    margin-bottom: 8px;
-  }
-  #dropper-note {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  /* ── Footer ── */
-  footer {
-    text-align: center;
-    margin-top: 40px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 2px;
-  }
+  footer { text-align: center; margin-top: 40px; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; }
 </style>
 </head>
 <body>
 
-<!-- Portfolio header bar -->
 <div id="portfolio-bar">
   <span>← <a href="https://augustineiacopelli.github.io/appaday/">appaday portfolio</a></span>
-  <span id="app-num-label">APP 004</span>
+  <span>APP 004</span>
   <span>A · AI-POWERED TOOLS &nbsp;<button id="settings-btn" onclick="openSettings()" title="Settings">⚙</button></span>
 </div>
 
 <!-- Settings modal -->
 <div id="settings-overlay" onclick="closeSettings()">
   <div id="settings-modal" onclick="event.stopPropagation()">
-    <h3>⚙ SETTINGS</h3>
-    <label>ANTHROPIC API KEY</label>
+    <h3>SETTINGS</h3>
+    <label>ANTHROPIC API KEY (optional — for hidden segment analysis)</label>
     <div id="key-row">
       <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" oninput="updateGearState()" />
       <button class="btn-ghost" id="toggle-key-btn" onclick="toggleKeyVis()">SHOW</button>
     </div>
-    <p class="key-note">
-      Your key is stored only in memory for this session and never sent anywhere except directly to
-      <a href="https://api.anthropic.com" target="_blank">api.anthropic.com</a>.
-      Needed only for screenshot upload — manual entry and solving work without one.
-      Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
-    </p>
-
-    <label style="margin-top:18px;">DISTINCT COLORS IN THIS PUZZLE</label>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <div style="display:flex;flex-wrap:wrap;gap:5px;" id="color-count-btns">
-        <button class="cnt-btn" onclick="setColorCount(0)">AUTO</button>
-        <button class="cnt-btn" onclick="setColorCount(4)">4</button>
-        <button class="cnt-btn" onclick="setColorCount(5)">5</button>
-        <button class="cnt-btn" onclick="setColorCount(6)">6</button>
-        <button class="cnt-btn" onclick="setColorCount(7)">7</button>
-        <button class="cnt-btn" onclick="setColorCount(8)">8</button>
-        <button class="cnt-btn" onclick="setColorCount(9)">9</button>
-        <button class="cnt-btn" onclick="setColorCount(10)">10</button>
-        <button class="cnt-btn" onclick="setColorCount(11)">11</button>
-        <button class="cnt-btn" onclick="setColorCount(12)">12</button>
-      </div>
-    </div>
-    <p class="key-note">Count the number of unique colors visible in the puzzle (not tubes, colors). This tells the AI exactly how many distinct colors to find, preventing it from collapsing similar shades into one.</p>
+    <p class="key-note">Used only to estimate hidden "?" segment colors after you map the tubes. Manual mapping and solving work without a key. Never stored or committed. Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.</p>
 
     <label style="margin-top:18px;">NUMBER OF TUBES</label>
     <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;" id="tube-count-btns">
@@ -509,186 +167,142 @@
       <button class="cnt-btn" onclick="setTubeCount(14)">14</button>
       <button class="cnt-btn" onclick="setTubeCount(16)">16</button>
     </div>
-    <p class="key-note">Total number of tubes in the puzzle including empty ones.</p>
+    <p class="key-note">Total number of tubes including empty ones.</p>
 
-    <div id="settings-close-row">
-      <button class="btn-ghost" onclick="closeSettings()">DONE</button>
+    <label style="margin-top:18px;">DISTINCT COLORS IN THIS PUZZLE</label>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;" id="color-count-btns">
+      <button class="cnt-btn" onclick="setColorCount(0)">AUTO</button>
+      <button class="cnt-btn" onclick="setColorCount(4)">4</button>
+      <button class="cnt-btn" onclick="setColorCount(5)">5</button>
+      <button class="cnt-btn" onclick="setColorCount(6)">6</button>
+      <button class="cnt-btn" onclick="setColorCount(7)">7</button>
+      <button class="cnt-btn" onclick="setColorCount(8)">8</button>
+      <button class="cnt-btn" onclick="setColorCount(9)">9</button>
+      <button class="cnt-btn" onclick="setColorCount(10)">10</button>
+      <button class="cnt-btn" onclick="setColorCount(11)">11</button>
+      <button class="cnt-btn" onclick="setColorCount(12)">12</button>
+      <button class="cnt-btn" onclick="setColorCount(14)">14</button>
     </div>
+    <p class="key-note">Hint used for hidden segment analysis.</p>
+
+    <div id="settings-close-row"><button class="btn-ghost" onclick="closeSettings()">DONE</button></div>
+  </div>
+</div>
+
+<!-- Tap-to-map modal -->
+<div id="mapper-overlay">
+  <div id="mapper-header">
+    <strong>TAP TO MAP TUBES</strong>
+    Tap each segment top-to-bottom to assign its color. Complete one tube, then add it.
+  </div>
+  <div id="mapper-canvas-wrap">
+    <canvas id="mapper-canvas"></canvas>
+    <div id="mapper-magnifier"><canvas id="mag-canvas" width="72" height="72"></canvas></div>
+  </div>
+
+  <div id="tube-builder">
+    <div id="tube-builder-label">CURRENT TUBE — tap a slot to change it</div>
+    <div id="tube-slots"></div>
+    <div id="tube-builder-actions">
+      <button class="btn-ghost" onclick="clearCurrentTube()">✕ CLEAR TUBE</button>
+      <button class="btn-ghost" onclick="addEmptyTubeToList()">+ ADD EMPTY TUBE</button>
+      <button class="btn-green" onclick="commitTube()" id="commit-btn">✓ ADD TUBE</button>
+    </div>
+  </div>
+
+  <div id="built-preview"></div>
+
+  <div id="mapper-actions">
+    <button class="btn-danger" onclick="undoLastTube()">↩ UNDO LAST</button>
+    <button class="btn-green"  onclick="finishMapping()" id="finish-btn">⚡ DONE — SOLVE</button>
+    <button class="btn-ghost"  onclick="cancelMapper()">CANCEL</button>
+  </div>
+  <div id="mapper-note">Tap a segment on the image → pick its color → fill all 4 slots → Add Tube · Repeat for every tube left-to-right</div>
+</div>
+
+<!-- Color picker modal -->
+<div id="picker-overlay" onclick="closePicker()">
+  <div id="picker-modal" onclick="event.stopPropagation()">
+    <h3 id="picker-title">SELECT COLOR</h3>
+    <div id="picker-grid"></div>
   </div>
 </div>
 
 <div id="app">
   <div class="title-block">
     <h1>TUBE_SORT</h1>
-    <p>AI screenshot solver · AppADay</p>
+    <p>puzzle solver · AppADay</p>
   </div>
-
-  <!-- Controls -->
   <div id="controls">
     <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleUpload(event)" />
-    <button class="btn-yellow" onclick="document.getElementById('file-input').click()" id="upload-btn">📷 UPLOAD SCREENSHOT</button>
+    <button class="btn-yellow" onclick="document.getElementById('file-input').click()" id="upload-btn">📷 MAP FROM SCREENSHOT</button>
     <button class="btn-green"  onclick="handleSolve()" id="solve-btn">⚡ SOLVE</button>
     <button class="btn-danger" onclick="handleReset()">✕ RESET</button>
   </div>
-
-  <!-- Status -->
   <div id="status-bar"></div>
-
-  <!-- Solution nav -->
   <div id="solution-nav">
     <button class="btn-ghost" onclick="goStep(0)">⏮</button>
-    <button class="btn-ghost" onclick="goStep(solvingStep - 1)">◀</button>
+    <button class="btn-ghost" onclick="goStep(solvingStep-1)">◀</button>
     <div id="move-label"></div>
-    <button class="btn-ghost" onclick="goStep(solvingStep + 1)">▶</button>
+    <button class="btn-ghost" onclick="goStep(solvingStep+1)">▶</button>
     <button class="btn-ghost" onclick="goStep(solution.length)">⏭</button>
   </div>
-
-  <!-- Tubes -->
   <div id="tubes-grid"></div>
-
-  <footer>
-    SHIP SOMETHING EVERY DAY · IT COMPOUNDS
-  </footer>
-</div>
-
-<!-- Eyedropper modal -->
-<div id="dropper-overlay">
-  <div id="dropper-header">
-    <strong>🎨 SAMPLE YOUR COLORS</strong>
-    Tap each distinct color in the puzzle once. Tap a swatch to remove it.
-  </div>
-  <div id="dropper-canvas-wrap">
-    <canvas id="dropper-canvas"></canvas>
-    <div id="dropper-magnifier"><canvas id="mag-canvas" width="64" height="64"></canvas></div>
-  </div>
-  <div id="dropper-sampled"></div>
-  <div id="dropper-actions">
-    <button class="btn-ghost" onclick="clearSwatches()">✕ CLEAR ALL</button>
-    <button class="btn-green" onclick="confirmDropper()" id="dropper-confirm-btn">✓ ANALYZE WITH THESE COLORS</button>
-    <button class="btn-ghost" onclick="cancelDropper()">CANCEL</button>
-  </div>
-  <div id="dropper-note">Sample at least 1 color · tap swatches to remove · colors feed directly into AI analysis</div>
-</div>
-
-<!-- Color picker modal -->
-<div id="picker-overlay" onclick="closePicker()">
-  <div id="picker-modal" onclick="event.stopPropagation()">
-    <h3>SELECT COLOR — T<span id="picker-tube-label"></span> · SLOT <span id="picker-slot-label"></span></h3>
-    <div id="picker-grid"></div>
-  </div>
+  <footer>SHIP SOMETHING EVERY DAY · IT COMPOUNDS</footer>
 </div>
 
 <script>
-// ── Color definitions ──────────────────────────────────────────────────────
+// ── Colors ─────────────────────────────────────────────────────────────────
 const COLORS = {
-  red:     { bg: "#e63946", fg: "#fff",  label: "Red"      },
-  pink:    { bg: "#f48fb1", fg: "#111",  label: "Pink"     },
-  blue:    { bg: "#4fc3f7", fg: "#111",  label: "Blue"     },
-  green:   { bg: "#43a047", fg: "#fff",  label: "Green"    },
-  purple:  { bg: "#9c27b0", fg: "#fff",  label: "Purple"   },
-  orange:  { bg: "#ff9800", fg: "#111",  label: "Orange"   },
-  brown:   { bg: "#795548", fg: "#fff",  label: "Brown"    },
-  gray:    { bg: "#90a4ae", fg: "#111",  label: "Gray"     },
-  magenta: { bg: "#e91e63", fg: "#fff",  label: "Magenta"  },
-  darkred: { bg: "#7b1515", fg: "#fff",  label: "DarkRed"  },
-  teal:    { bg: "#00897b", fg: "#fff",  label: "Teal"     },
-  yellow:  { bg: "#fdd835", fg: "#111",  label: "Yellow"   },
-  "?":     { bg: "#1e2030", fg: "#555",  label: "?"        },
-  empty:   { bg: "transparent", fg: "#333", label: "—"     },
+  red:     { bg:"#e63946", fg:"#fff",  label:"Red"     },
+  pink:    { bg:"#f48fb1", fg:"#111",  label:"Pink"    },
+  blue:    { bg:"#4fc3f7", fg:"#111",  label:"Blue"    },
+  green:   { bg:"#43a047", fg:"#fff",  label:"Green"   },
+  purple:  { bg:"#9c27b0", fg:"#fff",  label:"Purple"  },
+  orange:  { bg:"#ff9800", fg:"#111",  label:"Orange"  },
+  brown:   { bg:"#795548", fg:"#fff",  label:"Brown"   },
+  gray:    { bg:"#90a4ae", fg:"#111",  label:"Gray"    },
+  magenta: { bg:"#e91e63", fg:"#fff",  label:"Magenta" },
+  darkred: { bg:"#7b1515", fg:"#fff",  label:"DarkRed" },
+  teal:    { bg:"#00897b", fg:"#fff",  label:"Teal"    },
+  yellow:  { bg:"#fdd835", fg:"#111",  label:"Yellow"  },
+  "?":     { bg:"#1e2030", fg:"#555",  label:"?"       },
+  empty:   { bg:"transparent", fg:"#333", label:""     },
 };
 const COLOR_KEYS = Object.keys(COLORS).filter(k => k !== "empty");
 const TUBE_SIZE = 4;
 
 // ── State ──────────────────────────────────────────────────────────────────
-let tubeCount = 6;
-let tubes = emptyTubes(6);
-let solution = null;
+let tubeCount  = 6;
+let colorCount = 0;
+let tubes      = emptyTubes(6);
+let solution   = null;
 let solvingStep = 0;
-let editTarget = null;
-let colorCount = 0; // 0 = auto
+let editTarget  = null;
 
-function setColorCount(n) {
-  colorCount = n;
-  document.querySelectorAll("#color-count-btns .cnt-btn").forEach(b => {
-    b.classList.toggle("active", b.textContent === (n === 0 ? "AUTO" : String(n)));
-  });
-}
+function emptyTubes(n) { return Array.from({length:n}, () => Array(TUBE_SIZE).fill("empty")); }
 
-function emptyTubes(n) {
-  return Array.from({ length: n }, () => Array(TUBE_SIZE).fill("empty"));
-}
-
-// ── Solver (BFS) ───────────────────────────────────────────────────────────
-function topOf(tube) {
-  for (let i = 0; i < tube.length; i++) {
-    if (tube[i] !== "empty") return { color: tube[i], idx: i };
-  }
-  return null;
-}
-
-function isDone(tubes) {
-  return tubes.every(t => {
-    const filled = t.filter(c => c !== "empty");
-    if (filled.length === 0) return true;
-    if (filled.length !== TUBE_SIZE) return false;
-    return filled.every(c => c === filled[0] && c !== "?");
-  });
-}
-
-function canMove(from, to) {
-  if (from === to) return false;
-  const ft = topOf(from);
-  if (!ft) return false;
-  const filled = to.filter(c => c !== "empty");
-  if (filled.length >= TUBE_SIZE) return false;
-  const tt = topOf(to);
-  if (!tt) return true;
-  return tt.color === ft.color;
-}
-
-function applyMove(tubes, fi, ti) {
-  const next = tubes.map(t => [...t]);
-  const color = topOf(next[fi]).color;
-  let idx = topOf(next[fi]).idx;
-  while (idx < TUBE_SIZE && next[fi][idx] === color) {
-    let placeAt = -1;
-    for (let i = TUBE_SIZE - 1; i >= 0; i--) {
-      if (next[ti][i] === "empty") { placeAt = i; break; }
-    }
-    if (placeAt === -1) break;
-    next[fi][idx] = "empty";
-    next[ti][placeAt] = color;
-    idx++;
-    const nt = topOf(next[ti]);
-    if (nt && nt.color !== color) break;
+// ── Solver ─────────────────────────────────────────────────────────────────
+function topOf(tube) { for (let i=0;i<tube.length;i++) if (tube[i]!=="empty") return {color:tube[i],idx:i}; return null; }
+function isDone(tubes) { return tubes.every(t => { const f=t.filter(c=>c!=="empty"); if(!f.length) return true; if(f.length!==TUBE_SIZE) return false; return f.every(c=>c===f[0]&&c!=="?"); }); }
+function canMove(from,to) { if(from===to) return false; const ft=topOf(from); if(!ft) return false; if(to.filter(c=>c!=="empty").length>=TUBE_SIZE) return false; const tt=topOf(to); return !tt||tt.color===ft.color; }
+function applyMove(tubes,fi,ti) {
+  const next=tubes.map(t=>[...t]); const color=topOf(next[fi]).color; let idx=topOf(next[fi]).idx;
+  while(idx<TUBE_SIZE&&next[fi][idx]===color) {
+    let p=-1; for(let i=TUBE_SIZE-1;i>=0;i--) if(next[ti][i]==="empty"){p=i;break;} if(p===-1) break;
+    next[fi][idx]="empty"; next[ti][p]=color; idx++;
+    const nt=topOf(next[ti]); if(nt&&nt.color!==color) break;
   }
   return next;
 }
-
-function stateKey(tubes) {
-  return JSON.stringify(tubes.map(t => [...t]).sort().join("|"));
-}
-
+function stateKey(t) { return JSON.stringify(t.map(x=>[...x]).sort().join("|")); }
 function solve(tubes) {
-  const queue = [{ t: tubes, moves: [] }];
-  const visited = new Set([stateKey(tubes)]);
-  const MAX = 10000;
-  let iter = 0;
-  while (queue.length && iter++ < MAX) {
-    const { t: cur, moves } = queue.shift();
-    if (isDone(cur)) return moves;
-    if (moves.length > 80) continue;
-    for (let fi = 0; fi < cur.length; fi++) {
-      for (let ti = 0; ti < cur.length; ti++) {
-        if (canMove(cur[fi], cur[ti])) {
-          const next = applyMove(cur, fi, ti);
-          const key = stateKey(next);
-          if (!visited.has(key)) {
-            visited.add(key);
-            queue.push({ t: next, moves: [...moves, { from: fi, to: ti }] });
-          }
-        }
-      }
+  const q=[{t:tubes,moves:[]}]; const vis=new Set([stateKey(tubes)]); let iter=0;
+  while(q.length&&iter++<15000) {
+    const {t:cur,moves}=q.shift(); if(isDone(cur)) return moves; if(moves.length>100) continue;
+    for(let fi=0;fi<cur.length;fi++) for(let ti=0;ti<cur.length;ti++) if(canMove(cur[fi],cur[ti])) {
+      const next=applyMove(cur,fi,ti); const key=stateKey(next);
+      if(!vis.has(key)){vis.add(key);q.push({t:next,moves:[...moves,{from:fi,to:ti}]});}
     }
   }
   return null;
@@ -696,530 +310,313 @@ function solve(tubes) {
 
 // ── Render ─────────────────────────────────────────────────────────────────
 function displayTubesForStep() {
-  if (!solution || solvingStep === 0) return tubes;
-  let t = tubes.map(x => [...x]);
-  for (let i = 0; i < solvingStep; i++) {
-    t = applyMove(t, solution[i].from, solution[i].to);
-  }
+  if(!solution||solvingStep===0) return tubes;
+  let t=tubes.map(x=>[...x]);
+  for(let i=0;i<solvingStep;i++) t=applyMove(t,solution[i].from,solution[i].to);
   return t;
 }
-
 function render() {
-  const grid = document.getElementById("tubes-grid");
-  grid.innerHTML = "";
-  const display = displayTubesForStep();
-  const currentMove = solution && solvingStep < solution.length ? solution[solvingStep] : null;
-
-  display.forEach((tube, ti) => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "tube-wrapper"
-      + (currentMove && currentMove.from === ti ? " from" : "")
-      + (currentMove && currentMove.to   === ti ? " to"   : "");
-
-    const lbl = document.createElement("div");
-    lbl.className = "tube-label";
-    lbl.textContent = `T${ti + 1}`;
-    wrapper.appendChild(lbl);
-
-    tube.forEach((color, ci) => {
-      const cell = document.createElement("div");
-      cell.className = "cell" + (color === "empty" ? " empty" : "");
-      const def = COLORS[color] || COLORS["?"];
-      cell.style.background = color === "empty" ? "" : def.bg;
-      cell.style.color = def.fg;
-      cell.style.border = color === "empty" ? "" : `1px solid rgba(255,255,255,0.12)`;
-      cell.textContent = color === "empty" ? "" : def.label;
-      cell.onclick = () => openPicker(ti, ci);
-      wrapper.appendChild(cell);
+  const grid=document.getElementById("tubes-grid"); grid.innerHTML="";
+  const display=displayTubesForStep();
+  const cm=solution&&solvingStep<solution.length?solution[solvingStep]:null;
+  display.forEach((tube,ti) => {
+    const wrap=document.createElement("div");
+    wrap.className="tube-wrapper"+(cm&&cm.from===ti?" from":"")+(cm&&cm.to===ti?" to":"");
+    const lbl=document.createElement("div"); lbl.className="tube-label"; lbl.textContent=`T${ti+1}`; wrap.appendChild(lbl);
+    tube.forEach((color,ci) => {
+      const cell=document.createElement("div"); cell.className="cell"+(color==="empty"?" empty":"");
+      const def=COLORS[color]||COLORS["?"]; cell.style.background=color==="empty"?"":def.bg; cell.style.color=def.fg;
+      if(color!=="empty") cell.style.border="1px solid rgba(255,255,255,0.12)";
+      cell.textContent=color==="empty"?"":def.label; cell.onclick=()=>openPicker(ti,ci); wrap.appendChild(cell);
     });
-
-    if (currentMove) {
-      const tag = document.createElement("div");
-      tag.className = "tube-move-tag";
-      if (currentMove.from === ti) tag.textContent = "FROM";
-      if (currentMove.to   === ti) tag.textContent = "TO";
-      wrapper.appendChild(tag);
-    }
-
-    grid.appendChild(wrapper);
+    if(cm){const tag=document.createElement("div");tag.className="tube-move-tag";if(cm.from===ti)tag.textContent="FROM";if(cm.to===ti)tag.textContent="TO";wrap.appendChild(tag);}
+    grid.appendChild(wrap);
   });
-
-  // Solution nav label
-  const navEl = document.getElementById("solution-nav");
-  const lblEl = document.getElementById("move-label");
-  if (solution) {
-    navEl.classList.add("visible");
-    if (solvingStep < solution.length) {
-      const m = solution[solvingStep];
-      lblEl.innerHTML = `<span class="step-num">Step ${solvingStep + 1} / ${solution.length}</span>`
-        + `<span class="step-move">Move T${m.from + 1} → T${m.to + 1}</span>`;
-    } else {
-      lblEl.innerHTML = `<span class="solved">✓ SOLVED</span>`;
-    }
-  } else {
-    navEl.classList.remove("visible");
-  }
+  const nav=document.getElementById("solution-nav"); const lbl=document.getElementById("move-label");
+  if(solution){
+    nav.classList.add("visible");
+    if(solvingStep<solution.length){const m=solution[solvingStep];lbl.innerHTML=`<span class="step-num">Step ${solvingStep+1}/${solution.length}</span><span class="step-move">Move T${m.from+1} → T${m.to+1}</span>`;}
+    else lbl.innerHTML=`<span class="solved">SOLVED</span>`;
+  } else nav.classList.remove("visible");
 }
 
-// ── Picker ─────────────────────────────────────────────────────────────────
-function openPicker(ti, ci) {
-  editTarget = { ti, ci };
-  document.getElementById("picker-tube-label").textContent = ti + 1;
-  document.getElementById("picker-slot-label").textContent = ci + 1;
-  const grid = document.getElementById("picker-grid");
-  grid.innerHTML = "";
-  COLOR_KEYS.forEach(k => {
-    const def = COLORS[k];
-    const chip = document.createElement("div");
-    chip.className = "color-chip";
-    chip.style.background = def.bg;
-    chip.style.color = def.fg;
-    chip.style.borderColor = "rgba(255,255,255,0.1)";
-    chip.textContent = def.label;
-    chip.onclick = () => { applyColorPick(k); };
-    grid.appendChild(chip);
+// ── Color picker ───────────────────────────────────────────────────────────
+function openPicker(ti,ci,callback) {
+  editTarget={ti,ci,callback};
+  document.getElementById("picker-title").textContent=callback?`SLOT ${ci+1} COLOR`:`TUBE ${ti+1} · SLOT ${ci+1}`;
+  const grid=document.getElementById("picker-grid"); grid.innerHTML="";
+  COLOR_KEYS.forEach(k=>{
+    const def=COLORS[k]; const chip=document.createElement("div"); chip.className="color-chip";
+    chip.style.background=def.bg; chip.style.color=def.fg; chip.textContent=def.label;
+    chip.onclick=()=>applyColorPick(k); grid.appendChild(chip);
   });
-  // Clear chip
-  const clear = document.createElement("div");
-  clear.className = "color-chip";
-  clear.style.background = "rgba(255,255,255,0.04)";
-  clear.style.color = "#555";
-  clear.style.border = "1px dashed #333";
-  clear.textContent = "Clear";
-  clear.onclick = () => applyColorPick("empty");
-  grid.appendChild(clear);
-
+  const clear=document.createElement("div"); clear.className="color-chip";
+  clear.style.cssText="background:rgba(255,255,255,0.04);color:#555;border:1px dashed #333;"; clear.textContent="Clear";
+  clear.onclick=()=>applyColorPick("empty"); grid.appendChild(clear);
   document.getElementById("picker-overlay").classList.add("open");
 }
-
 function applyColorPick(color) {
-  if (!editTarget) return;
-  tubes[editTarget.ti][editTarget.ci] = color;
-  solution = null;
-  solvingStep = 0;
+  if(!editTarget) return;
+  if(editTarget.callback) { editTarget.callback(color); }
+  else { tubes[editTarget.ti][editTarget.ci]=color; solution=null; solvingStep=0; render(); }
   closePicker();
+}
+function closePicker() { document.getElementById("picker-overlay").classList.remove("open"); editTarget=null; }
+
+// ── Settings ───────────────────────────────────────────────────────────────
+function openSettings()  { document.getElementById("settings-overlay").classList.add("open"); }
+function closeSettings() { document.getElementById("settings-overlay").classList.remove("open"); updateGearState(); }
+function updateGearState() { document.getElementById("settings-btn").classList.toggle("keyed", !!document.getElementById("api-key-input").value.trim()); }
+function toggleKeyVis()  { const i=document.getElementById("api-key-input"),b=document.getElementById("toggle-key-btn"); if(i.type==="password"){i.type="text";b.textContent="HIDE";}else{i.type="password";b.textContent="SHOW";} }
+function setTubeCount(n) {
+  tubeCount=n; if(n>tubes.length) tubes=[...tubes,...emptyTubes(n-tubes.length)]; else tubes=tubes.slice(0,n);
+  solution=null; solvingStep=0;
+  document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b=>b.classList.toggle("active",b.textContent===String(n)));
   render();
 }
-
-function closePicker() {
-  document.getElementById("picker-overlay").classList.remove("open");
-  editTarget = null;
+function setColorCount(n) {
+  colorCount=n;
+  document.querySelectorAll("#color-count-btns .cnt-btn").forEach(b=>b.classList.toggle("active",b.textContent===(n===0?"AUTO":String(n))));
 }
 
 // ── Controls ───────────────────────────────────────────────────────────────
-function setTubeCount(n) {
-  tubeCount = n;
-  if (n > tubes.length) {
-    tubes = [...tubes, ...emptyTubes(n - tubes.length)];
-  } else {
-    tubes = tubes.slice(0, n);
-  }
-  solution = null;
-  solvingStep = 0;
-  document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b => {
-    b.classList.toggle("active", b.textContent === String(n));
-  });
-  render();
-}
-
-function handleReset() {
-  tubes = emptyTubes(tubeCount);
-  solution = null;
-  solvingStep = 0;
-  setStatus("");
-  render();
-}
-
-function goStep(n) {
-  if (!solution) return;
-  solvingStep = Math.max(0, Math.min(solution.length, n));
-  render();
-}
-
-function setStatus(msg) {
-  const el = document.getElementById("status-bar");
-  if (msg) {
-    el.textContent = msg;
-    el.classList.add("visible");
-  } else {
-    el.classList.remove("visible");
-  }
-}
-
-function openSettings() {
-  document.getElementById("settings-overlay").classList.add("open");
-}
-function closeSettings() {
-  document.getElementById("settings-overlay").classList.remove("open");
-  updateGearState();
-}
-function updateGearState() {
-  const hasKey = document.getElementById("api-key-input").value.trim().length > 0;
-  document.getElementById("settings-btn").classList.toggle("keyed", hasKey);
-}
-function toggleKeyVis() {
-  const inp = document.getElementById("api-key-input");
-  const btn = document.getElementById("toggle-key-btn");
-  if (inp.type === "password") { inp.type = "text";     btn.textContent = "HIDE"; }
-  else                         { inp.type = "password"; btn.textContent = "SHOW"; }
-}
-
-// ── Solve ──────────────────────────────────────────────────────────────────
-function handleSolve() {
-  setStatus("Solving…");
-  solution = null;
-  solvingStep = 0;
-  render();
-  setTimeout(() => {
-    const result = solve(tubes);
-    if (result) {
-      solution = result;
-      solvingStep = 0;
-      setStatus(`✓ Solution found in ${result.length} moves. Use ▶ to step through.`);
-    } else {
-      setStatus("No solution found. If you have '?' unknowns, try guessing them or use Reveal in-game to expose them first.");
-    }
+function setStatus(msg) { const el=document.getElementById("status-bar"); if(msg){el.textContent=msg;el.classList.add("visible");}else el.classList.remove("visible"); }
+function handleReset()  { tubes=emptyTubes(tubeCount); solution=null; solvingStep=0; setStatus(""); render(); }
+function goStep(n)      { if(!solution) return; solvingStep=Math.max(0,Math.min(solution.length,n)); render(); }
+function handleSolve()  {
+  setStatus("Solving…"); solution=null; solvingStep=0; render();
+  setTimeout(()=>{
+    const r=solve(tubes);
+    if(r){solution=r;solvingStep=0;setStatus(`Solution found in ${r.length} moves.`);}
+    else setStatus("No solution found. Check for ? unknowns or incorrect colors.");
     render();
-  }, 30);
+  },30);
 }
 
-// ── Eyedropper ─────────────────────────────────────────────────────────────
-let dropperFile = null;
-let dropperBase64 = null;
-let dropperMime = null;
-let sampledColors = []; // array of {hex, key} where key is nearest COLORS match
-let dropperImg = null;
-let dropperCtx = null;
+// ── Tap-to-map ─────────────────────────────────────────────────────────────
+let mapperCtx=null, mapperImg=null;
+let currentTubeSlots=["empty","empty","empty","empty"];
+let builtTubes=[];
+let currentSlotTarget=0; // which slot we're filling next
 
-function rgbToHex(r, g, b) {
-  return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
+function handleUpload(event) {
+  const file=event.target.files[0]; if(!file) return;
+  document.getElementById("upload-btn").disabled=true;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.getElementById("mapper-canvas");
+      mapperCtx=canvas.getContext("2d");
+      canvas.width=img.naturalWidth; canvas.height=img.naturalHeight;
+      mapperCtx.drawImage(img,0,0); mapperImg=img;
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value="";
+  builtTubes=[]; currentTubeSlots=["empty","empty","empty","empty"]; currentSlotTarget=0;
+  document.getElementById("mapper-overlay").classList.add("open");
+  renderTubeBuilder(); renderBuiltPreview();
 }
 
-function hexDistance(hex1, hex2) {
-  const parse = h => [
-    parseInt(h.slice(1, 3), 16),
-    parseInt(h.slice(3, 5), 16),
-    parseInt(h.slice(5, 7), 16)
-  ];
-  const [r1, g1, b1] = parse(hex1);
-  const [r2, g2, b2] = parse(hex2);
-  return Math.sqrt((r1-r2)**2 + (g1-g2)**2 + (b1-b2)**2);
+function getMapXY(e,canvas) {
+  const rect=canvas.getBoundingClientRect(); const sx=canvas.width/rect.width; const sy=canvas.height/rect.height;
+  const src=e.touches?e.touches[0]:e;
+  return {x:Math.round((src.clientX-rect.left)*sx), y:Math.round((src.clientY-rect.top)*sy), cx:src.clientX-rect.left, cy:src.clientY-rect.top};
+}
+
+// Canvas tap — sample color then open picker
+document.addEventListener("DOMContentLoaded",()=>{
+  const wrap=document.getElementById("mapper-canvas-wrap");
+  const canvas=document.getElementById("mapper-canvas");
+  wrap.addEventListener("click", e=>{ if(e.target===canvas||e.target===wrap) tapCanvas(e); });
+  wrap.addEventListener("touchend", e=>{ e.preventDefault(); tapCanvas(e); },{passive:false});
+  canvas.addEventListener("mousemove", showMapMagnifier);
+  canvas.addEventListener("mouseleave",()=>{ document.getElementById("mapper-magnifier").style.display="none"; });
+});
+
+function tapCanvas(e) {
+  if(!mapperCtx) return;
+  const canvas=document.getElementById("mapper-canvas");
+  const {x,y}=getMapXY(e,canvas);
+  if(x<0||y<0||x>=canvas.width||y>=canvas.height) return;
+  // Sample 5x5
+  let r=0,g=0,b=0,n=0; const d=mapperCtx.getImageData(Math.max(0,x-2),Math.max(0,y-2),5,5);
+  for(let i=0;i<d.data.length;i+=4){r+=d.data[i];g+=d.data[i+1];b+=d.data[i+2];n++;}
+  r=Math.round(r/n);g=Math.round(g/n);b=Math.round(b/n);
+  const hex="#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
+  const nearest=nearestColorKey(hex);
+  // Open picker pre-selected at nearest, let user confirm or change
+  openPickerForSlot(currentSlotTarget, nearest);
 }
 
 function nearestColorKey(hex) {
-  let best = null, bestDist = Infinity;
-  for (const [key, def] of Object.entries(COLORS)) {
-    if (key === "empty" || key === "?") continue;
-    const d = hexDistance(hex, def.bg);
-    if (d < bestDist) { bestDist = d; best = key; }
+  const parse=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  const [r1,g1,b1]=parse(hex); let best=null,bd=Infinity;
+  for(const [k,def] of Object.entries(COLORS)){
+    if(k==="empty"||k==="?") continue;
+    const [r2,g2,b2]=parse(def.bg);
+    const d=Math.sqrt((r1-r2)**2+(g1-g2)**2+(b1-b2)**2);
+    if(d<bd){bd=d;best=k;}
   }
-  return best;
+  return best||"red";
 }
 
-function isTooSimilar(hex) {
-  return sampledColors.some(s => hexDistance(hex, s.hex) < 30);
-}
+function openPickerForSlot(slotIdx, preselected) {
+  const title=document.getElementById("picker-title");
+  title.textContent=`SLOT ${slotIdx+1} — tap sampled or choose manually`;
+  const grid=document.getElementById("picker-grid"); grid.innerHTML="";
 
-function renderSwatches() {
-  const el = document.getElementById("dropper-sampled");
-  el.innerHTML = "";
-  sampledColors.forEach((s, i) => {
-    const sw = document.createElement("div");
-    sw.className = "sampled-swatch";
-    sw.style.background = s.hex;
-    sw.title = `${s.hex} → ${s.key}`;
-    const x = document.createElement("div");
-    x.className = "swatch-x";
-    x.textContent = "×";
-    x.onclick = (e) => { e.stopPropagation(); sampledColors.splice(i, 1); renderSwatches(); };
-    sw.appendChild(x);
-    el.appendChild(sw);
+  // Show pre-selected at top prominently
+  if(preselected && COLORS[preselected]) {
+    const def=COLORS[preselected];
+    const chip=document.createElement("div"); chip.className="color-chip";
+    chip.style.cssText=`background:${def.bg};color:${def.fg};border:3px solid var(--accent);width:100%;font-size:13px;padding:10px;`;
+    chip.textContent=`SAMPLED: ${def.label}`; chip.onclick=()=>assignSlotColor(slotIdx,preselected);
+    grid.appendChild(chip);
+    const sep=document.createElement("div"); sep.style.cssText="width:100%;height:1px;background:var(--border);margin:6px 0;"; grid.appendChild(sep);
+  }
+
+  COLOR_KEYS.filter(k=>k!=="?").forEach(k=>{
+    const def=COLORS[k]; const chip=document.createElement("div"); chip.className="color-chip";
+    chip.style.background=def.bg; chip.style.color=def.fg; chip.textContent=def.label;
+    chip.onclick=()=>assignSlotColor(slotIdx,k); grid.appendChild(chip);
   });
-  document.getElementById("dropper-confirm-btn").disabled = sampledColors.length === 0;
+  const qchip=document.createElement("div"); qchip.className="color-chip";
+  qchip.style.cssText="background:#1e2030;color:#555;border:1px dashed #333;"; qchip.textContent="? Hidden";
+  qchip.onclick=()=>assignSlotColor(slotIdx,"?"); grid.appendChild(qchip);
+
+  editTarget={ti:-1,ci:slotIdx,callback:null};
+  document.getElementById("picker-overlay").classList.add("open");
 }
 
-function clearSwatches() {
-  sampledColors = [];
-  renderSwatches();
+function assignSlotColor(slotIdx, color) {
+  currentTubeSlots[slotIdx]=color;
+  currentSlotTarget=Math.min(slotIdx+1, TUBE_SIZE-1);
+  closePicker(); renderTubeBuilder();
 }
 
-function openDropper(file, base64, mime) {
-  dropperFile = file;
-  dropperBase64 = base64;
-  dropperMime = mime;
-  sampledColors = [];
-
-  const overlay = document.getElementById("dropper-overlay");
-  overlay.classList.add("open");
-
-  const canvas = document.getElementById("dropper-canvas");
-  dropperCtx = canvas.getContext("2d");
-  dropperImg = new Image();
-  dropperImg.onload = () => {
-    canvas.width  = dropperImg.naturalWidth;
-    canvas.height = dropperImg.naturalHeight;
-    dropperCtx.drawImage(dropperImg, 0, 0);
-  };
-  dropperImg.src = "data:" + mime + ";base64," + base64;
-
-  // Touch / click to sample
-  const wrap = document.getElementById("dropper-canvas-wrap");
-  wrap.ontouchstart = wrap.onclick = sampleFromEvent;
-
-  // Magnifier on mouse move (desktop)
-  canvas.onmousemove = showMagnifier;
-  canvas.onmouseleave = () => { document.getElementById("dropper-magnifier").style.display = "none"; };
-
-  renderSwatches();
-}
-
-function getCanvasXY(e, canvas) {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width  / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const src = e.touches ? e.touches[0] : e;
-  return {
-    x: Math.round((src.clientX - rect.left) * scaleX),
-    y: Math.round((src.clientY - rect.top)  * scaleY),
-    cx: src.clientX - rect.left,
-    cy: src.clientY - rect.top,
-  };
-}
-
-function sampleFromEvent(e) {
-  e.preventDefault();
-  const canvas = document.getElementById("dropper-canvas");
-  const { x, y } = getCanvasXY(e, canvas);
-  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
-  // Sample a 5x5 average for stability
-  let r = 0, g = 0, b = 0, count = 0;
-  const imgData = dropperCtx.getImageData(Math.max(0, x-2), Math.max(0, y-2), 5, 5);
-  for (let i = 0; i < imgData.data.length; i += 4) {
-    r += imgData.data[i]; g += imgData.data[i+1]; b += imgData.data[i+2]; count++;
-  }
-  r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
-  const hex = rgbToHex(r, g, b);
-  if (isTooSimilar(hex)) return; // skip duplicates
-  const key = nearestColorKey(hex);
-  sampledColors.push({ hex, key });
-  renderSwatches();
-}
-
-function showMagnifier(e) {
-  const canvas = document.getElementById("dropper-canvas");
-  const mag = document.getElementById("dropper-magnifier");
-  const magCanvas = document.getElementById("mag-canvas");
-  const magCtx = magCanvas.getContext("2d");
-  const { x, y, cx, cy } = getCanvasXY(e, canvas);
-  const zoom = 4, size = 64;
-  magCtx.clearRect(0, 0, size, size);
-  magCtx.drawImage(canvas, x - size/(zoom*2), y - size/(zoom*2), size/zoom, size/zoom, 0, 0, size, size);
-  // crosshair
-  magCtx.strokeStyle = "rgba(255,255,255,0.8)";
-  magCtx.lineWidth = 1;
-  magCtx.beginPath(); magCtx.moveTo(size/2, 0); magCtx.lineTo(size/2, size); magCtx.stroke();
-  magCtx.beginPath(); magCtx.moveTo(0, size/2); magCtx.lineTo(size, size/2); magCtx.stroke();
-  mag.style.display = "block";
-  mag.style.left = (cx + 12) + "px";
-  mag.style.top  = (cy - 44) + "px";
-}
-
-function cancelDropper() {
-  document.getElementById("dropper-overlay").classList.remove("open");
-  document.getElementById("file-input").value = "";
-  document.getElementById("upload-btn").disabled = false;
-}
-
-async function confirmDropper() {
-  document.getElementById("dropper-overlay").classList.remove("open");
-  await runAnalysis(dropperFile, dropperBase64, dropperMime, sampledColors);
-  document.getElementById("upload-btn").disabled = false;
-}
-
-// ── Screenshot analysis ────────────────────────────────────────────────────
-async function handleUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const apiKey = document.getElementById("api-key-input").value.trim();
-  if (!apiKey) {
-    setStatus("⚠ Enter your Anthropic API key in Settings (⚙) to use screenshot analysis.");
-    openSettings();
-    return;
-  }
-  document.getElementById("upload-btn").disabled = true;
-
-  const base64 = await new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result.split(",")[1]);
-    r.onerror = rej;
-    r.readAsDataURL(file);
+function renderTubeBuilder() {
+  const el=document.getElementById("tube-slots"); el.innerHTML="";
+  currentTubeSlots.forEach((color,i)=>{
+    const slot=document.createElement("div");
+    slot.className="build-slot"+(color!=="empty"?" filled":"");
+    const def=COLORS[color]||COLORS["?"];
+    if(color!=="empty"){slot.style.background=def.bg;slot.style.color=def.fg;slot.style.borderColor="rgba(255,255,255,0.15)";}
+    if(i===currentSlotTarget) slot.style.boxShadow="0 0 0 2px var(--accent)";
+    slot.textContent=color==="empty"?String(i+1):def.label;
+    slot.onclick=()=>{ currentSlotTarget=i; openPickerForSlot(i, currentTubeSlots[i]!=="empty"?currentTubeSlots[i]:null); };
+    el.appendChild(slot);
   });
-  const mime = file.type || "image/png";
-
-  // Open eyedropper first — user samples colors, then we analyze
-  openDropper(file, base64, mime);
-  event.target.value = "";
+  const filled=currentTubeSlots.filter(c=>c!=="empty").length;
+  document.getElementById("commit-btn").disabled=filled===0;
+  document.getElementById("tube-builder-label").textContent=`CURRENT TUBE (${filled}/4 filled) — tap slot to change`;
 }
 
-async function runAnalysis(file, base64, mime, swatches) {
-  const apiKey = document.getElementById("api-key-input").value.trim();
-  setStatus("Analyzing screenshot with AI…");
+function clearCurrentTube()  { currentTubeSlots=["empty","empty","empty","empty"]; currentSlotTarget=0; renderTubeBuilder(); }
+function addEmptyTubeToList(){ builtTubes.push(["empty","empty","empty","empty"]); renderBuiltPreview(); }
+function undoLastTube()      { if(builtTubes.length) builtTubes.pop(); renderBuiltPreview(); }
 
+function commitTube() {
+  builtTubes.push([...currentTubeSlots]);
+  currentTubeSlots=["empty","empty","empty","empty"]; currentSlotTarget=0;
+  renderTubeBuilder(); renderBuiltPreview();
+}
+
+function renderBuiltPreview() {
+  const el=document.getElementById("built-preview"); el.innerHTML="";
+  builtTubes.forEach((tube,ti)=>{
+    const wrap=document.createElement("div"); wrap.className="preview-tube";
+    const lbl=document.createElement("span"); lbl.textContent=`T${ti+1}`; wrap.appendChild(lbl);
+    tube.forEach(color=>{
+      const s=document.createElement("div"); s.className="preview-slot";
+      const def=COLORS[color]||COLORS["?"];
+      s.style.background=color==="empty"?"rgba(255,255,255,0.04)":def.bg;
+      s.style.borderColor=color==="empty"?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.12)";
+      wrap.appendChild(s);
+    });
+    wrap.onclick=()=>editBuiltTube(ti);
+    el.appendChild(wrap);
+  });
+  document.getElementById("finish-btn").disabled=builtTubes.length===0;
+  const n=builtTubes.length;
+  document.getElementById("mapper-note").textContent=`${n} tube${n!==1?"s":""} mapped · Tap a built tube to edit · Tap Add Empty Tube for buffer tubes`;
+}
+
+function editBuiltTube(ti) {
+  currentTubeSlots=[...builtTubes[ti]]; builtTubes.splice(ti,1);
+  currentSlotTarget=0; renderTubeBuilder(); renderBuiltPreview();
+}
+
+function cancelMapper() {
+  document.getElementById("mapper-overlay").classList.remove("open");
+  document.getElementById("upload-btn").disabled=false;
+}
+
+async function finishMapping() {
+  document.getElementById("mapper-overlay").classList.remove("open");
+  document.getElementById("upload-btn").disabled=false;
+  tubes=builtTubes.map(t=>[...t]);
+  tubeCount=tubes.length;
+  document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b=>b.classList.toggle("active",b.textContent===String(tubeCount)));
+  solution=null; solvingStep=0;
+  render();
+
+  // Optional: call API for hidden segment analysis if key present and ? slots exist
+  const hasUnknowns=tubes.some(t=>t.includes("?"));
+  const apiKey=document.getElementById("api-key-input").value.trim();
+  if(hasUnknowns && apiKey) {
+    setStatus("Analyzing hidden segments…");
+    await analyzeHidden(apiKey);
+  } else if(hasUnknowns) {
+    setStatus(`${tubeCount} tubes loaded. Hidden segments present — enter API key in Settings for analysis. Hit SOLVE when ready.`);
+  } else {
+    setStatus(`${tubeCount} tubes loaded. Hit SOLVE.`);
+  }
+}
+
+async function analyzeHidden(apiKey) {
   try {
-    const paletteLines = swatches.map((s, i) =>
-      `  color${i + 1}: "${s.key}" (sampled hex ${s.hex})`
-    ).join("\n");
-
-    const paletteConstraint = swatches.length > 0
-      ? `\nCOLOR PALETTE — the user sampled these colors via eyedropper:\n${paletteLines}\n\nPrefer these color keys for every slot. However, if you clearly see a color in the image that does not match any sampled color, use the best matching key from the master list and add it to "extra_colors" in your response (see OUTPUT FORMAT below). Do not invent colors — only flag genuinely distinct colors the user may have missed.`
-      : "";
-
-    const countConstraint = colorCount > 0 && swatches.length === 0
-      ? `\nCRITICAL CONSTRAINT: This puzzle contains EXACTLY ${colorCount} distinct colors. You MUST identify exactly ${colorCount} different color values.`
-      : "";
-
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1500,
-        system: `You are a Ball Sort puzzle color analyzer. Read tube contents from a screenshot and return a JSON object.
-
-CRITICAL: Your response must begin with { and end with }. No preamble, no explanation, no markdown. Raw JSON only.
-
-OUTPUT FORMAT:
-{
-  "tubes": [[slot0,slot1,slot2,slot3], ...],
-  "extra_colors": ["colorkey", ...],
-  "missing": [{"color": "colorkey", "count": N}, ...]
-}
-
-- "tubes": each slot top-to-bottom is one color key or "?" or "empty"
-- "extra_colors": list any color keys you see in the image that were NOT in the user's sampled palette (empty array [] if none). Only include genuinely distinct colors, not noise.
-- "missing": for each color key that appears in at least one "?" slot's tube, estimate how many hidden segments belong to that color based on context (tube counts, visible segments). If you cannot determine which colors are hidden, list each color that appears incomplete (visible count not a multiple of 4) with the number of segments still needed to complete it. Empty array [] if no "?" slots exist.
-
-COLOR KEYS:
-  red, pink, blue, green, purple, orange, brown, gray, magenta, darkred, teal, yellow, ?, empty
-
-DISAMBIGUATION:
-- red vs darkred: darkred is much darker, maroon/wine.
-- pink vs magenta: magenta is vivid fuchsia. Pink is soft/pastel.
-- blue vs purple: blue has no red. Purple leans violet.
-- brown vs orange: brown is dark/earthy. Orange is bright/warm.
-${paletteConstraint}${countConstraint}
-Tubes are left-to-right, top-row first. Each tube has exactly 4 slots. Use "?" for hidden/question-mark slots. Use "empty" for visibly empty slots.
-
-Output ONLY raw JSON. No markdown, no backticks, no explanation.`,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "image", source: { type: "base64", media_type: mime, data: base64 } },
-              { type: "text", text: swatches.length > 0
-                  ? `This is a Ball Sort puzzle. The colors present are: ${swatches.map(s => s.key).join(", ")}. List every tube's contents top-to-bottom using only those color names. Use "?" for hidden slots and "empty" for empty slots.`
-                  : colorCount > 0
-                    ? `This is a Ball Sort puzzle with exactly ${colorCount} distinct colors. List every tube's contents top-to-bottom. Use "?" for hidden slots and "empty" for empty slots.`
-                    : `This is a Ball Sort puzzle. List every tube's contents top-to-bottom. Use "?" for hidden slots and "empty" for empty slots.`
-              }
-            ]
-          },
-          {
-            role: "assistant",
-            content: "Here are the tube contents:\n"
-          },
-          {
-            role: "user",
-            content: `Now convert that analysis to this exact JSON format and output NOTHING else — no explanation, just the JSON object:
-{
-  "tubes": [[slot0,slot1,slot2,slot3], ...],
-  "extra_colors": [],
-  "missing": []
-}
-Use these color keys: red, pink, blue, green, purple, orange, brown, gray, magenta, darkred, teal, yellow, ?, empty.`
-          }
-        ]
+    const tubeDesc=tubes.map((t,i)=>`T${i+1}: ${t.join(", ")}`).join("\n");
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6", max_tokens:500,
+        system:`You analyze Ball Sort puzzle state and estimate what colors are hidden in "?" slots. Return ONLY a JSON array: [{"color":"colorkey","count":N},...] listing each color that has hidden segments and how many. Color keys: red,pink,blue,green,purple,orange,brown,gray,magenta,darkred,teal,yellow. A complete tube has 4 of the same color. Count visible segments per color, then figure out how many more are needed (hidden). Return [] if nothing is hidden. Raw JSON array only.`,
+        messages:[{role:"user",content:`Here is the current tube state:\n${tubeDesc}\n\nColors with counts not a multiple of 4 have hidden segments. List them as JSON array.`}]
       })
     });
-
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error.message);
-    const text = data.content?.find(b => b.type === "text")?.text || "";
-    console.log("RAW API RESPONSE:", text); // diagnostic
-
-    // Strategy 1: find outermost { } block
-    let parsed = null;
-    const braceStart = text.indexOf("{");
-    const braceEnd = text.lastIndexOf("}");
-    if (braceStart !== -1 && braceEnd > braceStart) {
-      try { parsed = JSON.parse(text.slice(braceStart, braceEnd + 1)); } catch(e) {}
+    const data=await resp.json();
+    if(data.error) throw new Error(data.error.message);
+    const text=data.content?.find(b=>b.type==="text")?.text||"";
+    const arrMatch=text.match(/\[[\s\S]*\]/);
+    const missing=arrMatch?JSON.parse(arrMatch[0]):[];
+    let msg=`${tubeCount} tubes loaded. Hit SOLVE.`;
+    if(missing.length){
+      const parts=missing.filter(m=>m.color&&m.count>0).map(m=>{const def=COLORS[m.color];return `${def?def.label:m.color} x${m.count}`;});
+      if(parts.length) msg+=` Hidden segments: ${parts.join(", ")}.`;
     }
-    // Strategy 2: strip markdown fences and try again
-    if (!parsed) {
-      try { parsed = JSON.parse(text.replace(/```json|```/gi, "").trim()); } catch(e) {}
-    }
-    // Strategy 3: regex for tubes key
-    if (!parsed) {
-      const m = text.match(/\{[\s\S]*?"tubes"[\s\S]*?\}/);
-      if (m) { try { parsed = JSON.parse(m[0]); } catch(e) {} }
-    }
-    if (!parsed || !parsed.tubes) {
-      throw new Error(`Parse failed. Response was: "${text.slice(0, 200)}"`);
-    }
-
-    if (parsed.tubes && Array.isArray(parsed.tubes)) {
-      const normalized = parsed.tubes.map(t =>
-        Array.from({ length: TUBE_SIZE }, (_, i) => {
-          const v = t[i];
-          return (v && COLORS[v]) ? v : "empty";
-        })
-      );
-      tubes = normalized;
-      tubeCount = normalized.length;
-      solution = null;
-      solvingStep = 0;
-      document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b => {
-        b.classList.toggle("active", b.textContent === String(tubeCount));
-      });
-
-      // Build status message
-      let msg = `Detected ${tubeCount} tubes. Review cells (click to edit), then hit SOLVE.`;
-
-      // Extra colors the user missed
-      const extras = (parsed.extra_colors || []).filter(k => COLORS[k]);
-      if (extras.length > 0) {
-        msg += ` ⚠ Possible missed color${extras.length > 1 ? "s" : ""}: ${extras.map(k => COLORS[k].label).join(", ")} — check tubes and correct if needed.`;
-      }
-
-      // Missing/hidden segment breakdown
-      const missing = (parsed.missing || []).filter(m => m.color && m.count > 0);
-      if (missing.length > 0) {
-        const parts = missing.map(m => {
-          const def = COLORS[m.color];
-          return `${def ? def.label : m.color} ×${m.count}`;
-        });
-        msg += ` 🔍 Hidden segments: ${parts.join(", ")}.`;
-      }
-
-      setStatus(msg);
-      render();
-    } else {
-      setStatus("Could not parse AI response. Try manual entry by clicking each cell.");
-    }
-  } catch (err) {
-    setStatus("Error: " + err.message);
+    setStatus(msg);
+  } catch(err) {
+    setStatus(`${tubeCount} tubes loaded. Hit SOLVE. (Hidden analysis failed: ${err.message})`);
   }
+}
+
+function showMapMagnifier(e) {
+  const canvas=document.getElementById("mapper-canvas"); const mag=document.getElementById("mapper-magnifier");
+  const mc=document.getElementById("mag-canvas"); const mctx=mc.getContext("2d");
+  const {x,y,cx,cy}=getMapXY(e,canvas); const zoom=4,size=72;
+  mctx.clearRect(0,0,size,size); mctx.drawImage(canvas,x-size/(zoom*2),y-size/(zoom*2),size/zoom,size/zoom,0,0,size,size);
+  mctx.strokeStyle="rgba(255,255,255,0.8)"; mctx.lineWidth=1;
+  mctx.beginPath();mctx.moveTo(size/2,0);mctx.lineTo(size/2,size);mctx.stroke();
+  mctx.beginPath();mctx.moveTo(0,size/2);mctx.lineTo(size,size/2);mctx.stroke();
+  mag.style.display="block"; mag.style.left=(cx+12)+"px"; mag.style.top=(cy-44)+"px";
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
-setColorCount(0);
-setTubeCount(6);
-render();
+setColorCount(0); setTubeCount(6); render();
 </script>
 </body>
 </html>
