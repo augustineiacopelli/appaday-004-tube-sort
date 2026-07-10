@@ -1122,12 +1122,26 @@ Output ONLY raw JSON. No markdown, no backticks, no explanation.`,
             content: [
               { type: "image", source: { type: "base64", media_type: mime, data: base64 } },
               { type: "text", text: swatches.length > 0
-                  ? `Analyze this Ball Sort puzzle. I sampled these colors: ${swatches.map(s => s.key).join(", ")}. If you spot any color I missed, list it in extra_colors. For any "?" slots, estimate missing colors in the missing array. Return raw JSON only starting with {.`
+                  ? `This is a Ball Sort puzzle. The colors present are: ${swatches.map(s => s.key).join(", ")}. List every tube's contents top-to-bottom using only those color names. Use "?" for hidden slots and "empty" for empty slots.`
                   : colorCount > 0
-                    ? `Analyze this Ball Sort puzzle. There are exactly ${colorCount} distinct colors. For any "?" slots, populate the missing array. Return raw JSON only starting with {.`
-                    : `Analyze this Ball Sort puzzle. For any "?" slots, populate the missing array. Return raw JSON only starting with {.`
+                    ? `This is a Ball Sort puzzle with exactly ${colorCount} distinct colors. List every tube's contents top-to-bottom. Use "?" for hidden slots and "empty" for empty slots.`
+                    : `This is a Ball Sort puzzle. List every tube's contents top-to-bottom. Use "?" for hidden slots and "empty" for empty slots.`
               }
             ]
+          },
+          {
+            role: "assistant",
+            content: "Here are the tube contents:\n"
+          },
+          {
+            role: "user",
+            content: `Now convert that analysis to this exact JSON format and output NOTHING else — no explanation, just the JSON object:
+{
+  "tubes": [[slot0,slot1,slot2,slot3], ...],
+  "extra_colors": [],
+  "missing": []
+}
+Use these color keys: red, pink, blue, green, purple, orange, brown, gray, magenta, darkred, teal, yellow, ?, empty.`
           }
         ]
       })
