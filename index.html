@@ -441,14 +441,12 @@ function tapCanvas(e) {
   const canvas=document.getElementById("mapper-canvas");
   const {x,y}=getMapXY(e,canvas);
   if(x<0||y<0||x>=canvas.width||y>=canvas.height) return;
-  // Sample 5x5
   let r=0,g=0,b=0,n=0; const d=mapperCtx.getImageData(Math.max(0,x-2),Math.max(0,y-2),5,5);
   for(let i=0;i<d.data.length;i+=4){r+=d.data[i];g+=d.data[i+1];b+=d.data[i+2];n++;}
   r=Math.round(r/n);g=Math.round(g/n);b=Math.round(b/n);
   const hex="#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
   const nearest=nearestColorKey(hex);
-  // Open picker pre-selected at nearest, let user confirm or change
-  openPickerForSlot(currentSlotTarget, nearest);
+  openPickerForSlot(currentSlotTarget, nearest, hex);
 }
 
 function nearestColorKey(hex) {
@@ -463,31 +461,56 @@ function nearestColorKey(hex) {
   return best||"red";
 }
 
-function openPickerForSlot(slotIdx, preselected) {
-  const title=document.getElementById("picker-title");
-  title.textContent=`SLOT ${slotIdx+1} — tap sampled or choose manually`;
-  const grid=document.getElementById("picker-grid"); grid.innerHTML="";
+let lastSampledHex = null;
 
-  // Show pre-selected at top prominently
-  if(preselected && COLORS[preselected]) {
-    const def=COLORS[preselected];
-    const chip=document.createElement("div"); chip.className="color-chip";
-    chip.style.cssText=`background:${def.bg};color:${def.fg};border:3px solid var(--accent);width:100%;font-size:13px;padding:10px;`;
-    chip.textContent=`SAMPLED: ${def.label}`; chip.onclick=()=>assignSlotColor(slotIdx,preselected);
-    grid.appendChild(chip);
-    const sep=document.createElement("div"); sep.style.cssText="width:100%;height:1px;background:var(--border);margin:6px 0;"; grid.appendChild(sep);
+function openPickerForSlot(slotIdx, preselected, sampledHex) {
+  lastSampledHex = sampledHex || null;
+  const title = document.getElementById("picker-title");
+  title.textContent = `SLOT ${slotIdx + 1} — confirm or correct color`;
+  const grid = document.getElementById("picker-grid"); grid.innerHTML = "";
+
+  // Show sampled hex swatch if we have one
+  if (sampledHex) {
+    const swatchRow = document.createElement("div");
+    swatchRow.style.cssText = "display:flex;align-items:center;gap:10px;width:100%;margin-bottom:8px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.08);";
+    const swatch = document.createElement("div");
+    swatch.style.cssText = `width:36px;height:36px;border-radius:6px;background:${sampledHex};border:1px solid rgba(255,255,255,0.2);flex-shrink:0;`;
+    const info = document.createElement("div");
+    info.style.cssText = "font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.6;";
+    info.innerHTML = `SAMPLED<br><span style="color:var(--text)">${sampledHex.toUpperCase()}</span><br><span style="color:var(--accent)">nearest: ${preselected ? COLORS[preselected].label : "?"}</span>`;
+    swatchRow.appendChild(swatch); swatchRow.appendChild(info);
+    grid.appendChild(swatchRow);
   }
 
-  COLOR_KEYS.filter(k=>k!=="?").forEach(k=>{
-    const def=COLORS[k]; const chip=document.createElement("div"); chip.className="color-chip";
-    chip.style.background=def.bg; chip.style.color=def.fg; chip.textContent=def.label;
-    chip.onclick=()=>assignSlotColor(slotIdx,k); grid.appendChild(chip);
-  });
-  const qchip=document.createElement("div"); qchip.className="color-chip";
-  qchip.style.cssText="background:#1e2030;color:#555;border:1px dashed #333;"; qchip.textContent="? Hidden";
-  qchip.onclick=()=>assignSlotColor(slotIdx,"?"); grid.appendChild(qchip);
+  // Quick-pick: nearest match button
+  if (preselected && COLORS[preselected]) {
+    const def = COLORS[preselected];
+    const chip = document.createElement("div"); chip.className = "color-chip";
+    chip.style.cssText = `background:${def.bg};color:${def.fg};border:3px solid var(--accent);width:100%;font-size:13px;padding:10px;margin-bottom:4px;`;
+    chip.textContent = `USE: ${def.label}`;
+    chip.onclick = () => assignSlotColor(slotIdx, preselected);
+    grid.appendChild(chip);
+  }
 
-  editTarget={ti:-1,ci:slotIdx,callback:null};
+  const sep = document.createElement("div");
+  sep.style.cssText = "width:100%;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin:6px 0 4px;";
+  sep.textContent = "OR PICK MANUALLY:";
+  grid.appendChild(sep);
+
+  COLOR_KEYS.filter(k => k !== "?").forEach(k => {
+    const def = COLORS[k]; const chip = document.createElement("div"); chip.className = "color-chip";
+    chip.style.background = def.bg; chip.style.color = def.fg;
+    if (k === preselected) chip.style.border = "2px solid var(--accent)";
+    chip.textContent = def.label;
+    chip.onclick = () => assignSlotColor(slotIdx, k); grid.appendChild(chip);
+  });
+
+  const qchip = document.createElement("div"); qchip.className = "color-chip";
+  qchip.style.cssText = "background:#1e2030;color:#555;border:1px dashed #333;";
+  qchip.textContent = "? Hidden";
+  qchip.onclick = () => assignSlotColor(slotIdx, "?"); grid.appendChild(qchip);
+
+  editTarget = { ti: -1, ci: slotIdx, callback: null };
   document.getElementById("picker-overlay").classList.add("open");
 }
 
@@ -506,7 +529,7 @@ function renderTubeBuilder() {
     if(color!=="empty"){slot.style.background=def.bg;slot.style.color=def.fg;slot.style.borderColor="rgba(255,255,255,0.15)";}
     if(i===currentSlotTarget) slot.style.boxShadow="0 0 0 2px var(--accent)";
     slot.textContent=color==="empty"?String(i+1):def.label;
-    slot.onclick=()=>{ currentSlotTarget=i; openPickerForSlot(i, currentTubeSlots[i]!=="empty"?currentTubeSlots[i]:null); };
+    slot.onclick=()=>{ currentSlotTarget=i; openPickerForSlot(i, currentTubeSlots[i]!=="empty"?currentTubeSlots[i]:null, null); };
     el.appendChild(slot);
   });
   const filled=currentTubeSlots.filter(c=>c!=="empty").length;
