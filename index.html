@@ -460,7 +460,7 @@ function showMag(e){
 // Init
 setTubeCount(6);render();
 
-async function getModel(tier = 'sonnet') {
+async function getModel(tier = 'opus') {
   try {
     const response = await fetch('../config.json');
     const config = await response.json();
