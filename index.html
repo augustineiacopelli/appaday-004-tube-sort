@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="https://augustineiacopelli.github.io/appaday/manifests/004.webmanifest">
 <script src="https://augustineiacopelli.github.io/appaday/save.js" defer></script>
+<script src="https://augustineiacopelli.github.io/appaday/keys.js" data-app="004" data-accent="#289664" defer></script>
 <title>Tube Sort | AppADay 004</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet"/>
 <style>
@@ -106,12 +107,7 @@ footer{text-align:center;margin-top:40px;font-family:var(--mono);font-size:10px;
 <div id="settings-overlay" class="modal-overlay" onclick="closeSettings()">
   <div class="modal-box" onclick="event.stopPropagation()">
     <h3>SETTINGS</h3>
-    <label>ANTHROPIC API KEY</label>
-    <div id="key-row">
-      <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" oninput="updateGearState()"/>
-      <button class="btn-ghost" id="toggle-key-btn" onclick="toggleKeyVis()">SHOW</button>
-    </div>
-    <p class="key-note">Used for screenshot analysis only. Never stored or committed.<br>Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.</p>
+    <div id="keyMount"><p class="key-note">The key manager is loading. If this stays, check your connection and reload.</p></div>
     <label style="margin-top:18px;">NUMBER OF TUBES</label>
     <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;" id="tube-count-btns">
       <button class="cnt-btn" onclick="setTubeCount(4)">4</button>
@@ -280,10 +276,11 @@ function applyPick(color){if(pickerTarget){tubes[pickerTarget.ti][pickerTarget.c
 function closePicker(){document.getElementById("picker-overlay").classList.remove("open");pickerTarget=null;}
 
 // Settings
-function openSettings(){document.getElementById("settings-overlay").classList.add("open");}
+function openSettings(){if(window.AppKeys)window.AppKeys.mountSettings(document.getElementById("keyMount"));document.getElementById("settings-overlay").classList.add("open");}
 function closeSettings(){document.getElementById("settings-overlay").classList.remove("open");updateGearState();}
-function updateGearState(){document.getElementById("settings-btn").classList.toggle("keyed",!!document.getElementById("api-key-input").value.trim());}
-function toggleKeyVis(){const i=document.getElementById("api-key-input"),b=document.getElementById("toggle-key-btn");if(i.type==="password"){i.type="text";b.textContent="HIDE";}else{i.type="password";b.textContent="SHOW";}}
+function updateGearState(){document.getElementById("settings-btn").classList.toggle("keyed",!!(window.AppKeys&&window.AppKeys.has()));}
+window.addEventListener("appaday:keychange",updateGearState);
+document.addEventListener("DOMContentLoaded",updateGearState);
 function setTubeCount(n){tubeCount=n;tubeCountSet=true;if(n>tubes.length)tubes=[...tubes,...emptyTubes(n-tubes.length)];else tubes=tubes.slice(0,n);solution=null;solvingStep=0;document.querySelectorAll("#tube-count-btns .cnt-btn").forEach(b=>b.classList.toggle("active",b.textContent===String(n)));render();}
 
 // Controls
@@ -302,8 +299,9 @@ function handleSolve(){
 
 // Step 1: trigger upload - must have API key and tube count
 function triggerUpload(){
-  const apiKey=document.getElementById("api-key-input").value.trim();
-  if(!apiKey||!tubeCountSet){setStatus("Set your API key and tube count in Settings first.");openSettings();return;}
+  if(!window.AppKeys){setStatus("The key manager did not load. Check your connection and reload.");return;}
+  if(!tubeCountSet){setStatus("Set your tube count in Settings first.");openSettings();return;}
+  if(!window.AppKeys.has()){window.AppKeys.get();setStatus("Add your Claude API key, then tap upload again.");return;}
   document.getElementById("file-input").click();
 }
 
@@ -385,7 +383,8 @@ function cancelDropper(){document.getElementById("dropper-overlay").classList.re
 // Step 2: palette confirmed - call API with palette as anchors
 async function confirmPalette(){
   document.getElementById("dropper-overlay").classList.remove("open");
-  const apiKey=document.getElementById("api-key-input").value.trim();
+  const apiKey=window.AppKeys?await window.AppKeys.get():null;
+  if(!apiKey){setStatus("Add your Claude API key with the gear button to continue.");return;}
   setStatus("AI is reading tube layout using your palette...");
   document.getElementById("upload-btn").disabled=true;
 
