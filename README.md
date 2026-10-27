@@ -19,5 +19,5 @@ no backend. Screenshot analysis requires an Anthropic API key entered at
 runtime — it is never stored or committed.
 
 **Category:** A · AI-Powered Tools  
-**Stack:** HTML · CSS · JS · Claude API (vision + claude-sonnet-4)  
+**Stack:** HTML · CSS · JS · Claude API (vision + the current Claude Sonnet model)  
 **AppADay:** 004

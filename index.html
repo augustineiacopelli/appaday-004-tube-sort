@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="https://augustineiacopelli.github.io/appaday/manifests/004.webmanifest">
 <script src="https://augustineiacopelli.github.io/appaday/save.js" defer></script>
+<script src="https://augustineiacopelli.github.io/appaday/models.js"></script>
 <script src="https://augustineiacopelli.github.io/appaday/keys.js" data-app="004" data-accent="#289664" defer></script>
 <title>Tube Sort | AppADay 004</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet"/>
@@ -397,7 +398,7 @@ async function confirmPalette(){
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({
-        model:"claude-sonnet-5-5",
+        model:(window.AppModels ? window.AppModels.id("sonnet") : ""),
         max_tokens:3000,
         system:"You are analyzing a Ball Sort puzzle. The user has provided an exact color palette sampled directly from the image pixels. Your ONLY job is to identify which palette color each segment matches - do NOT invent new colors.\n\nPALETTE (use these keys exactly):\n"+paletteDesc+"\n\nRules:\n- There are exactly "+tubeCount+" tubes\n- List tubes left-to-right, top-row first\n- Each tube has 4 segments top-to-bottom\n- For each segment pick the CLOSEST palette key\n- Use \"?\" for hidden/question-mark segments\n- Use \"empty\" for empty slots\n- Format: Tube 1: key key key key",
         messages:[{role:"user",content:[
@@ -416,7 +417,7 @@ async function confirmPalette(){
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({
-        model:"claude-sonnet-5-5",
+        model:(window.AppModels ? window.AppModels.id("sonnet") : ""),
         max_tokens:3000,
         system:"Convert tube descriptions to JSON. Output ONLY raw JSON, no markdown.\nFormat: {\"tubes\":[[s0,s1,s2,s3],...]}\nValid slot values: "+validKeys+", \"?\", \"empty\"\nMust have exactly "+tubeCount+" tubes, each with exactly 4 slots.",
         messages:[{role:"user",content:"Convert to JSON ("+tubeCount+" tubes):\n\n"+description}]
@@ -466,15 +467,6 @@ function showMag(e){
 // Init
 setTubeCount(6);render();
 
-async function getModel(tier = 'opus') {
-  try {
-    const response = await fetch('../config.json');
-    const config = await response.json();
-    return config.models[tier];
-  } catch {
-    return 'claude-sonnet-5-5';
-  }
-}
 </script>
 </body>
 </html>
